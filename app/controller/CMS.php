@@ -3,18 +3,16 @@
 namespace app\controller;
 use flundr\mvc\Controller;
 
-class Home extends Controller {
+class CMS extends Controller {
 
 	public function __construct() {
 		$this->view('DefaultLayout');
-		$this->models('Players');
+		$this->models('');
 	}
 
 	public function index() {
-
-		dd($this->Players->get(1,1));
-
-		$this->view->render('example');
+		$this->view->title = 'RankIT CMS';
+		$this->view->render('cms');
 	}
 
 }

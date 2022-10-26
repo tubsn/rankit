@@ -21,9 +21,16 @@ class Players extends Model
 					SELECT avg(score) FROM scores
 					WHERE scores.player_id = :ID
 					AND scores.date > NOW() - INTERVAL 1 MONTH
-				) as score
+				) as score,
+
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = :ID
+					AND scores.date > NOW() - INTERVAL 1 MONTH
+				) as votes
+
 			 FROM players
-			 INNER JOIN teams on teams.team_id = players.id
+			 LEFT JOIN teams on teams.id = players.team
 			 WHERE players.id = :ID
 			 "
 		);
@@ -31,7 +38,63 @@ class Players extends Model
 		$SQLstatement->execute([':ID' => $id]);
 		return ($SQLstatement->fetch());
 
+	}
+
+	public function team($teamID) {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT players.*, teams.name as team, 
+
+				round((
+					SELECT avg(score) FROM scores
+					WHERE scores.player_id = players.id
+				),1) as score,
+
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = players.id
+				) as votes
+	
+
+			 FROM players
+			 LEFT JOIN teams on teams.id = players.team
+			 WHERE teams.id = $teamID
+			 "
+		);
+
+		$SQLstatement->execute();
+		return ($SQLstatement->fetchAll());
 
 	}
+
+
+	public function match($matchID) {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT players.*, teams.name as team, 
+
+				round((
+					SELECT avg(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND match_id = $matchID
+
+				),1) as score,
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND match_id = $matchID
+				) as votes
+			 FROM players
+			 LEFT JOIN teams on teams.id = players.team
+
+			 "
+		);
+
+		$SQLstatement->execute();
+		return ($SQLstatement->fetchAll());
+
+	}
+
+
 
 }

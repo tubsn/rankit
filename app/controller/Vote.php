@@ -22,7 +22,25 @@ class Vote extends Controller {
 		$this->Scores->create($data);
 
 
-		$this->view->render('example');
 	}
+
+	public function cast($playerID) {
+
+		$score = $_POST['score'];
+		$data = [
+			'player_id' => $playerID,
+			'match_id' => 1,
+			'score' => $score,
+			'creator' => 'fan',
+		];
+
+		$this->Scores->create($data);
+
+		$this->view->redirect('/');
+
+		//$this->view->render('example');
+
+	}
+
 
 }

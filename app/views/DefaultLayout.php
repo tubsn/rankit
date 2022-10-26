@@ -13,7 +13,7 @@ class DefaultLayout extends htmlView {
 	public $css = ['/styles/flundr/css/defaults.css', '/styles/css/main.css'];
 	public $fonts = 'https://fonts.googleapis.com/css?family=Fira+Sans:400,400i,600|Fira+Sans+Condensed:400,600';
 	public $js = '/styles/js/main.js';
-	public $framework = 'https://cdn.jsdelivr.net/npm/vue/dist/vue.js';
+	public $framework = 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js';
 	public $meta = [
 		'author' => 'flundr',
 		'robots' => 'index, follow',
