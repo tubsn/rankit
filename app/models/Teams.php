@@ -10,6 +10,7 @@ class Teams extends Model
 	public function __construct() {
 		$this->db = new SQLdb(DB_SETTINGS);
 		$this->db->table = 'teams';
+		$this->db->orderby = 'name';
 	}
 
 	public function get($id, $columns = null) {

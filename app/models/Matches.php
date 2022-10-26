@@ -14,5 +14,35 @@ class Matches extends Model
 
 	}
 
+	public function get($id, $columns = null) {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT matches.*, hometeams.name as home_team, awayteams.name as away_team, locations.name as location, locations.city as city, locations.seats as seats
+			 FROM matches
+			 LEFT JOIN locations on matches.location_id = locations.id
+			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
+			 LEFT JOIN teams awayteams on matches.away_team_id = awayteams.id
+			 WHERE matches.id = :ID"
+		);
+
+		$SQLstatement->execute([':ID' => $id]);
+		return ($SQLstatement->fetch());
+	}
+
+	public function list() {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT matches.*, hometeams.name as home_team, awayteams.name as away_team, locations.name as location, locations.city as city, locations.seats as seats
+			 FROM matches
+			 LEFT JOIN locations on matches.location_id = locations.id
+			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
+			 LEFT JOIN teams awayteams on matches.away_team_id = awayteams.id"
+		);
+
+		$SQLstatement->execute();
+		return ($SQLstatement->fetchAll());
+	}
+
+
 
 }

@@ -6,16 +6,24 @@ $routes->get('/urlpath[/{optionalparameter}]', 'Controller@Action');
 $routes->post('/article/{id:\d+}', 'Controller@Action'); With ID-Parameter (Numeric)
 */
 
-$routes->get('/', 'Players@list');
+$routes->get('/', 'Home@index');
 $routes->get('/team/{id:\d+}', 'Players@list');
-$routes->get('/match/{id:\d+}', 'Players@match');
 $routes->get('/player/{id:\d+}', 'Players@get');
 
+$routes->get('/match/{id:\d+}[/{seoURL}]', 'Matches@detail');
 
 $routes->get('/vote', 'Vote@index');
 $routes->post('/vote/{playerID:\d+}', 'Vote@cast');
 
 $routes->get('/cms', 'CMS@index');
+
+// Matches
+$routes->get('/cms/matches', 'Matches@index');
+$routes->get('/cms/matches/create', 'Matches@create');
+$routes->post('/cms/matches/create', 'Matches@save');
+$routes->get('/cms/matches/{id:\d+}', 'Matches@edit');
+$routes->post('/cms/matches/{id:\d+}', 'Matches@update');
+$routes->get('/cms/matches/{id:\d+}/delete', 'Matches@delete');
 
 // Locations
 $routes->get('/cms/locations', 'Locations@index');

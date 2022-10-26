@@ -27,9 +27,10 @@ class Vote extends Controller {
 	public function cast($playerID) {
 
 		$score = $_POST['score'];
+		$matchID = $_POST['match_id'];
 		$data = [
 			'player_id' => $playerID,
-			'match_id' => 1,
+			'match_id' => $matchID,
 			'score' => $score,
 			'creator' => 'fan',
 		];

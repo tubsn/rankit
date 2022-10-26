@@ -11,6 +11,7 @@ class Locations extends Model
 
 		$this->db = new SQLdb(DB_SETTINGS);
 		$this->db->table = 'locations';
+		$this->db->orderby = 'name';
 
 	}
 

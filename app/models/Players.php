@@ -11,6 +11,7 @@ class Players extends Model
 
 		$this->db = new SQLdb(DB_SETTINGS);
 		$this->db->table = 'players';
+		$this->db->orderby = 'lastname';
 
 	}
 
@@ -40,10 +41,42 @@ class Players extends Model
 
 	}
 
+
+	public function by_match($matchID, $playerIDs) {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT players.*, teams.name as team,
+
+				round((
+					SELECT avg(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND match_id = $matchID
+
+				),1) as score,
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND match_id = $matchID
+				) as votes
+			 FROM players
+			 LEFT JOIN teams on teams.id = players.team
+			 WHERE players.id IN ($playerIDs)
+			 "
+		);
+
+		$SQLstatement->execute();
+		return ($SQLstatement->fetchAll());
+
+	}
+
+
+
+
+
 	public function team($teamID) {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.name as team, 
+			"SELECT players.*, teams.name as team,
 
 				round((
 					SELECT avg(score) FROM scores
@@ -54,7 +87,7 @@ class Players extends Model
 					SELECT count(score) FROM scores
 					WHERE scores.player_id = players.id
 				) as votes
-	
+
 
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team
@@ -67,33 +100,6 @@ class Players extends Model
 
 	}
 
-
-	public function match($matchID) {
-
-		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.name as team, 
-
-				round((
-					SELECT avg(score) FROM scores
-					WHERE scores.player_id = players.id
-					AND match_id = $matchID
-
-				),1) as score,
-				(
-					SELECT count(score) FROM scores
-					WHERE scores.player_id = players.id
-					AND match_id = $matchID
-				) as votes
-			 FROM players
-			 LEFT JOIN teams on teams.id = players.team
-
-			 "
-		);
-
-		$SQLstatement->execute();
-		return ($SQLstatement->fetchAll());
-
-	}
 
 
 
