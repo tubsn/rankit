@@ -39,6 +39,7 @@ class Teams extends Controller {
 	}
 
 	public function update($id) {
+		if (empty($_POST['rankable'])) {$_POST['rankable'] = null;}
 		$this->Teams->update($_POST,$id);
 		$this->view->redirect('/cms/teams');
 	}

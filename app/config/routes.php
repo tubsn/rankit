@@ -41,6 +41,14 @@ $routes->get('/cms/teams/{id:\d+}', 'Teams@edit');
 $routes->post('/cms/teams/{id:\d+}', 'Teams@update');
 $routes->get('/cms/teams/{id:\d+}/delete', 'Teams@delete');
 
+// Players
+$routes->get('/cms/players', 'Players@index');
+$routes->get('/cms/players/create', 'Players@create');
+$routes->post('/cms/players/create', 'Players@save');
+$routes->get('/cms/players/{id:\d+}', 'Players@edit');
+$routes->post('/cms/players/{id:\d+}', 'Players@update');
+$routes->get('/cms/players/{id:\d+}/delete', 'Players@delete');
+
 
 // You can delete these if you don´t need Users in your App
 

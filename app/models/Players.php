@@ -15,6 +15,18 @@ class Players extends Model
 
 	}
 
+	public function only_rankable() {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT players.*, teams.rankable as rankable FROM players 
+			 LEFT JOIN teams on teams.id = players.team_id
+			WHERE rankable = 1"
+		);
+
+		$SQLstatement->execute();
+		return ($SQLstatement->fetchAll());
+	}
+
 	public function get($id, $columns = null) {
 
 		$SQLstatement = $this->db->connection->prepare(
@@ -31,7 +43,7 @@ class Players extends Model
 				) as votes
 
 			 FROM players
-			 LEFT JOIN teams on teams.id = players.team
+			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE players.id = :ID
 			 "
 		);
@@ -59,7 +71,7 @@ class Players extends Model
 					AND match_id = $matchID
 				) as votes
 			 FROM players
-			 LEFT JOIN teams on teams.id = players.team
+			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE players.id IN ($playerIDs)
 			 "
 		);
@@ -90,7 +102,7 @@ class Players extends Model
 
 
 			 FROM players
-			 LEFT JOIN teams on teams.id = players.team
+			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE teams.id = $teamID
 			 "
 		);

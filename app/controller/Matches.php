@@ -32,7 +32,7 @@ class Matches extends Controller {
 
 	public function create() {
 		$this->view->locations = $this->Locations->all();
-		$this->view->players = $this->Players->all();
+		$this->view->players = $this->Players->only_rankable();
 		$this->view->teams = $this->Teams->all();
 		$this->view->title = 'Neues Spiel anlegen';
 		$this->view->render('matches/new');
@@ -54,7 +54,7 @@ class Matches extends Controller {
 
 	public function edit($id) {
 		$this->view->locations = $this->Locations->all();
-		$this->view->players = $this->Players->all();
+		$this->view->players = $this->Players->only_rankable();
 		$this->view->teams = $this->Teams->all();
 		$this->view->match = $this->Matches->get($id);
 		$this->view->title = 'Spiel bearbeiten';
