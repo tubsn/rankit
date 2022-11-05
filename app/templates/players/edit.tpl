@@ -1,7 +1,7 @@
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
-	
+
 	<label>Name:
 		<input type="text" value="<?=$player['firstname']?>" name="firstname">
 	</label>
@@ -14,8 +14,16 @@
 		<input type="number" value="<?=$player['number']?>" min="1" max="99" name="number">
 	</label>
 
+	<label>Position:
+		<input type="text" value="<?=$player['position']?>" name="position">
+	</label>
+
 	<label>Geburtstag:
 		<input type="date" value="<?=$player['birthday']?>" name="birthday">
+	</label>
+
+	<label>Thumbnail:
+		<input type="text" value="<?=$player['thumbnail']?>" name="thumbnail">
 	</label>
 
 	<label>Verein:
@@ -23,7 +31,7 @@
 			<option value="">offen</option>
 		<?php if ($player['team_id']): ?>
 		<option selected value="<?=$player['team_id']?>"><?=$player['team']?></option>
-		<?php endif ?>			
+		<?php endif ?>
 		<?php foreach ($teams as $team): ?>
 			<?php if ($player['team_id'] == $team['id']) {continue;} ?>
 			<option value="<?=$team['id']?>"><?=$team['name']?></option>

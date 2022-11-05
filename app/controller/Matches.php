@@ -16,18 +16,23 @@ class Matches extends Controller {
 		$this->view->render('matches/list');
 	}
 
-	public function detail($id, $seoURL = null) {
-
+	public function detail($id) {
 		$match = $this->Matches->get($id);
-		$players = $this->Players->by_match($id, $match['players']);
-
-		$this->view->players = $players;
-		$this->view->match = $match;
-
-		$this->view->title = $match['home_team'] . ' VS. ' . $match['away_team'];
-		$this->view->render('matches/detail');
-
+		$match['players'] = $this->Players->by_match($id, $match['players']);
+		$this->view->json($match);
 	}
+
+	public function latest() {
+		$match = $this->Matches->latest();
+		$match['players'] = $this->Players->by_match($match['id'], $match['players']);
+		$this->view->json($match);
+	}
+
+	public function list() {
+		$matches = $this->Matches->list(5);
+		$this->view->json($matches);
+	}
+
 
 
 	public function create() {

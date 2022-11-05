@@ -1,20 +1,22 @@
 <?php
-/*
-Complete Documentation on: https://github.com/nikic/FastRoute
-Example Routes:
-$routes->get('/urlpath[/{optionalparameter}]', 'Controller@Action');
-$routes->post('/article/{id:\d+}', 'Controller@Action'); With ID-Parameter (Numeric)
-*/
+
 
 $routes->get('/', 'Home@index');
 $routes->get('/team/{id:\d+}', 'Players@list');
 $routes->get('/player/{id:\d+}', 'Players@get');
 
-$routes->get('/match/{id:\d+}[/{seoURL}]', 'Matches@detail');
 
 $routes->get('/vote', 'Vote@index');
 $routes->post('/vote/{playerID:\d+}', 'Vote@cast');
 
+
+$routes->get('/match', 'Matches@latest');
+$routes->get('/match/{id:\d+}', 'Matches@detail');
+$routes->get('/matches', 'Matches@list');
+
+
+
+// CMS Stuff
 $routes->get('/cms', 'CMS@index');
 
 // Matches

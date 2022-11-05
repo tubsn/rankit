@@ -18,7 +18,7 @@ class Players extends Model
 	public function only_rankable() {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.rankable as rankable FROM players 
+			"SELECT players.*, teams.rankable as rankable FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
 			WHERE rankable = 1"
 		);
@@ -73,6 +73,7 @@ class Players extends Model
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE players.id IN ($playerIDs)
+			 ORDER BY players.number
 			 "
 		);
 

@@ -1,0 +1,86 @@
+/* Variables */
+:root {
+--ri-bright-color: #fbfcff;
+--ri-dark-color: #252b35;
+--ri-grey-color: #949ba3;
+--ri-highlight-color: #5ad9a4;
+
+--ri-border-radius: .8em;
+--ri-font-color: var(--ri-bright-color);
+--ri-bg-color: var(--ri-dark-color);
+--ri-header-color: var(--ri-highlight-color);
+--ri-header-font-color: var(--ri-dark-color);
+--ri-link-color: var(--ri-highlight-color);
+}
+
+
+
+.ri-app {background:var(--ri-bg-color); color: var(--ri-font-color); margin:2em 0; border-radius: var(--ri-border-radius);}
+.ri-app {background: linear-gradient(-25deg, rgb(24, 35, 51) 10%, rgb(41, 55, 79) 55%); }
+
+.ri-app > :last-child {padding-bottom:1em;}
+.ri-app > :first-child {padding-top:1em;}
+
+.ri-app h1 {font-size:2rem;}
+
+.ri-header {background:var(--ri-header-color); color:var(--ri-header-font-color); position:relative; margin-bottom:2em;
+border-top-right-radius:var(--ri-border-radius); border-top-left-radius:var(--ri-border-radius);}
+.ri-header {background: linear-gradient(355deg, rgba(90,217,164,1) 47%, rgba(90,217,164,.8) 100%);}
+
+.ri-header:after {content: ''; position:absolute; display:block;
+height:30px; width:100.1%; background:var(--ri-header-color); bottom:-30px;
+clip-path: polygon(0 0, 100% 0, 100% 10%, 0 100%);}
+
+
+
+
+.ri-header h1 {padding:0 .5em; font-size:1.7rem; position:absolute; right:0.5em;}
+
+
+.ri-match-list-container {padding:0 2em; margin:0; max-width:500px;}
+.ri-match-detail {padding:0 1em; scrollbar-color: var(--ri-highlight-color) var(--ri-dark-color); max-height:600px; overflow-y: auto;}
+.ri-match-detail h1 {margin-bottom:0;}
+.ri-match-header {text-align:center; margin-bottom: 1em;}
+
+.ri-match-list-entry {cursor:pointer; display:block; border-radius:var(--ri-border-radius); font-size:0.9rem;}
+.ri-match-list-entry:hover .ri-match-teams {background: rgba(0,0,0,0.1);}
+
+.ri-match-date {padding:0 .5em; background:var(--ri-dark-color); color:var(--ri-highlight-color); opacity:0.6; margin-right:0em; border-radius: var(--ri-border-radius)}
+.ri-match-teams {padding:.25em .5em; border-radius: var(--ri-border-radius);}
+
+
+.ri-player-list {margin:0; padding:0 1em; display:flex; gap:1em;  flex-direction: column;}
+.ri-player-list-entry {background: var(--ri-dark-color); padding:0 1em; border-radius: var(--ri-border-radius); position:relative;}
+.ri-player-list-entry {background: linear-gradient(164deg, rgba(43, 68, 94) 25%, rgba(28,34,42,1) 79%); border: 1px solid #3c4a60;
+box-shadow: 0px 0px 31px -15px rgba(0,0,0,0.75);}
+
+.ri-player-box {display:flex; align-items:center; gap: 1em; justify-content:space-between;}
+@media only screen and (max-width: 1024px) {
+	.ri-player-box {flex-direction: column; padding-bottom:2em;}
+}
+
+.ri-player-image {position:relative; top:-8px;}
+.ri-player-image:before {content: ''; position:absolute; bottom:-4px; display:block; width:100%; background:var(--ri-highlight-color); height:4px; z-index:2}
+.ri-player-image:after {content: ''; position:absolute; bottom:0; display:block; width:70%; margin-left:15%; background:var(--ri-grey-color); height:70px; z-index:0; opacity:0.2;}
+.ri-player-image img {z-index:1; position:relative;}
+.ri-player-info {font-size:0.9rem; line-height:130%}
+.ri-player-name {font-weight:bold; font-size:1.3rem; margin-bottom:0.2em;}
+.ri-player-position {background: #354459; padding:0 0.5em; border-radius: .4em;}
+
+.ri-player-score {text-align:center; position:relative;}
+.ri-player-score-votes {font-size:.9rem; color:#586375; position:absolute; bottom:-1.5em; text-align:center; width:100%;}
+.ri-player-score-number {font-size:3rem;  margin-bottom:8px;}
+.ri-player-score-number {color: var(--ri-highlight-color);}
+
+.ri-player-score-editor .ri-player-score-number {opacity:0.4;}
+
+
+
+
+.ri-vote-container {display:flex; gap:0.2em; flex-wrap:wrap; max-width:100px; justify-content:end}
+.ri-vote-button {border-radius:0.2em; background-color: var(--ri-dark-color); border:0; padding:0 .5em}
+.ri-vote-button:hover {background-color: var(--ri-highlight-color);}
+
+
+.ri-vote-container:before {content: 'Spieler bewerten'; font-size:0.7rem; opacity:0.3; line-height:130%; text-align:center; width:90%;}
+.ri-vote-container:hover:before {opacity:.8;}

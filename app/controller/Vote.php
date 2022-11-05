@@ -37,7 +37,9 @@ class Vote extends Controller {
 
 		$this->Scores->create($data);
 
-		$this->view->redirect('/');
+		//$this->view->redirect('/');
+
+		$this->view->json(true);
 
 		//$this->view->render('example');
 
