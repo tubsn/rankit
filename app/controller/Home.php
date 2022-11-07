@@ -11,9 +11,13 @@ class Home extends Controller {
 	}
 
 	public function index() {
+
+		$this->view->redirect('/frontend');
+		/*
 		$this->view->matches = $this->Matches->list();
 		$this->view->title = 'Spielübersicht';
 		$this->view->render('index');
+		*/
 	}
 
 }

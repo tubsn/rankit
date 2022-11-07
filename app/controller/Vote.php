@@ -26,22 +26,29 @@ class Vote extends Controller {
 
 	public function cast($playerID) {
 
-		$score = $_POST['score'];
-		$matchID = $_POST['match_id'];
+		$score = intval($_POST['score']);
+		$matchID = intval($_POST['match_id']);
+		$userHash = $_POST['hash'] ?? null;
+
+		$voteInvalid = $this->Scores->vote_already_cast($userHash,$matchID,$playerID);
+		if ($voteInvalid || !in_array($score, range(1,6))) {
+			throw new \Exception("Vote not accepted", 404);
+		}
+
+		if (empty($userHash) || $userHash == 'null') {
+			$userHash = $this->Scores->randomID();
+		}
+
 		$data = [
 			'player_id' => $playerID,
 			'match_id' => $matchID,
 			'score' => $score,
+			'hash' => $userHash,
 			'creator' => 'fan',
 		];
 
 		$this->Scores->create($data);
-
-		//$this->view->redirect('/');
-
-		$this->view->json(true);
-
-		//$this->view->render('example');
+		$this->view->json($userHash);
 
 	}
 

@@ -2,6 +2,7 @@
 :root {
 --ri-bright-color: #fbfcff;
 --ri-dark-color: #252b35;
+--ri-red-color: #6a2525;
 --ri-grey-color: #949ba3;
 --ri-highlight-color: #5ad9a4;
 
@@ -18,26 +19,22 @@
 .ri-app {background:var(--ri-bg-color); color: var(--ri-font-color); margin:2em 0; border-radius: var(--ri-border-radius);}
 .ri-app {background: linear-gradient(-25deg, rgb(24, 35, 51) 10%, rgb(41, 55, 79) 55%); }
 
-.ri-app > :last-child {padding-bottom:1em;}
-.ri-app > :first-child {padding-top:1em;}
-
 .ri-app h1 {font-size:2rem;}
 
 .ri-header {background:var(--ri-header-color); color:var(--ri-header-font-color); position:relative; margin-bottom:2em;
-border-top-right-radius:var(--ri-border-radius); border-top-left-radius:var(--ri-border-radius);}
+border-top-right-radius:var(--ri-border-radius); border-top-left-radius:var(--ri-border-radius); padding-top:1em;}
 .ri-header {background: linear-gradient(355deg, rgba(90,217,164,1) 47%, rgba(90,217,164,.8) 100%);}
-
 .ri-header:after {content: ''; position:absolute; display:block;
 height:30px; width:100.1%; background:var(--ri-header-color); bottom:-30px;
 clip-path: polygon(0 0, 100% 0, 100% 10%, 0 100%);}
 
+.ri-header h1 {font-size:1.7rem; position:absolute; right:1em;}
+
+.ri-footer {text-align:left; padding:0 1em; font-size:0.7rem; opacity:0.6; text-align:center;}
+
+.ri-match-list-container {padding:0 1.5em; margin:0; max-width:500px;}
 
 
-
-.ri-header h1 {padding:0 .5em; font-size:1.7rem; position:absolute; right:0.5em;}
-
-
-.ri-match-list-container {padding:0 2em; margin:0; max-width:500px;}
 .ri-match-detail {padding:0 1em; scrollbar-color: var(--ri-highlight-color) var(--ri-dark-color); max-height:600px; overflow-y: auto;}
 .ri-match-detail h1 {margin-bottom:0;}
 .ri-match-header {text-align:center; margin-bottom: 1em;}
@@ -49,7 +46,7 @@ clip-path: polygon(0 0, 100% 0, 100% 10%, 0 100%);}
 .ri-match-teams {padding:.25em .5em; border-radius: var(--ri-border-radius);}
 
 
-.ri-player-list {margin:0; padding:0 1em; display:flex; gap:1em;  flex-direction: column;}
+.ri-player-list {margin:0; padding:0 .5em; display:flex; gap:1em;  flex-direction: column;}
 .ri-player-list-entry {background: var(--ri-dark-color); padding:0 1em; border-radius: var(--ri-border-radius); position:relative;}
 .ri-player-list-entry {background: linear-gradient(164deg, rgba(43, 68, 94) 25%, rgba(28,34,42,1) 79%); border: 1px solid #3c4a60;
 box-shadow: 0px 0px 31px -15px rgba(0,0,0,0.75);}
@@ -75,11 +72,17 @@ box-shadow: 0px 0px 31px -15px rgba(0,0,0,0.75);}
 .ri-player-score-editor .ri-player-score-number {opacity:0.4;}
 
 
+.ri-versus {color: var(--ri-highlight-color); font-size:0.8em;}
+.ri-bar {color: var(--ri-highlight-color); opacity:0.5}
 
 
 .ri-vote-container {display:flex; gap:0.2em; flex-wrap:wrap; max-width:100px; justify-content:end}
 .ri-vote-button {border-radius:0.2em; background-color: var(--ri-dark-color); border:0; padding:0 .5em}
 .ri-vote-button:hover {background-color: var(--ri-highlight-color);}
+.ri-vote-is-cast, .ri-vote-denied, .ri-vote-error {text-align:center; background:var(--ri-highlight-color); border-radius:var(--ri-border-radius); font-size:0.8rem; color:var(--ri-dark-color); line-height:130%; padding:.5em}
+
+.ri-vote-denied {background: var(--ri-dark-color); color: var(--ri-grey-color)}
+.ri-vote-error {background: var(--ri-red-color); color: #f28c8c;}
 
 
 .ri-vote-container:before {content: 'Spieler bewerten'; font-size:0.7rem; opacity:0.3; line-height:130%; text-align:center; width:90%;}

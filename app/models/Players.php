@@ -57,7 +57,7 @@ class Players extends Model
 	public function by_match($matchID, $playerIDs) {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.name as team,
+			"SELECT players.*, teams.name as team, TIMESTAMPDIFF(YEAR, players.birthday, CURDATE()) AS age,
 
 				round((
 					SELECT avg(score) FROM scores

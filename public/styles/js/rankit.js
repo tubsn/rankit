@@ -12,6 +12,11 @@ class RankItApp {
 		this.matches = [];
 		this.dateParser = new FlundrDateParser();
 		this.prefix = 'ri-';
+		this.castVotes = [];
+		this.voteCookie = null;
+		this.voteCookieName = 'rankit';
+		this.voteCookieDuration = 7;
+		this.userHash = null;
 
 		this.init();
 	}
@@ -19,6 +24,7 @@ class RankItApp {
 	async init() {
 
 		this.prepareContainer();
+		this.checkCookie();
 
 		await this.loadMatches();
 		await this.loadMatchData(this.matchID);
@@ -94,8 +100,8 @@ class RankItApp {
 
 		el.innerHTML = `
 		<div class="${this.prefix}match-header">
-			<h1>${match.home_team} Vs. ${match.away_team}</h1>
-			<p>${match.location || 'Spielort offen'} | ${this.gd(match.date)} ${this.time(match.date)} Uhr</p>
+			<h1>${match.home_team} <span class="${this.prefix}versus">vs.</span> ${match.away_team}</h1>
+			<p>${match.location || 'Spielort offen'} <span class="${this.prefix}bar">|</span> ${this.gd(match.date)} ${this.time(match.date)} Uhr</p>
 		</div>`;
 
 		el.appendChild(this.playerList());
@@ -134,7 +140,7 @@ class RankItApp {
 		<figure class="${this.prefix}player-image"><img src="${player.thumbnail || '/frontend/default.png'}"></figure>
 		<div class="${this.prefix}player-info">
 			<div class="${this.prefix}player-name">${player.firstname} ${player.lastname} <small>(${player.number || '-'})</small></div>
-			<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> | Alter: 23</div>
+			<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> | Alter: ${player.age}</div>
 			<div class="${this.prefix}player-verein">Verein: ${player.team}</div>
 		</div>
 
@@ -157,10 +163,44 @@ class RankItApp {
 	}
 
 
+	voteNotAvailable() {
+
+		let matchDate = new Date(this.matchdata.date);
+		let now = new Date();
+
+		if (matchDate > now) {return true;}
+		return false;
+
+	}
+
+	voteTimePassed() {
+
+		let matchDate = new Date(this.matchdata.date);
+		let date = new Date();
+		date.setDate(date.getDate() - 7);
+
+		if (matchDate < date) {return true;}
+		return false;
+
+	}
+
 	voteTPL(playerID) {
 
 		let el = document.createElement('div');
 		el.classList.add(this.prefix + 'vote-container');
+
+		if (this.voteTimePassed()) {
+			el.innerHTML = `<div class="${this.prefix}vote-denied">Zeitraum abgelaufen</div>`; return el;
+		}
+
+		if (this.voteNotAvailable()) {
+			el.innerHTML = `<div class="${this.prefix}vote-denied">noch nicht möglich</div>`; return el;
+		}
+
+		if (this.castVotes[this.matchID] && this.castVotes[this.matchID].includes(playerID)) {
+			el.innerHTML = `<div class="${this.prefix}vote-is-cast">Bewertung gespeichert</div>`; return el;
+		}
+
 		el.title = 'Schulnoten: 1 super - 6 schlecht'
 		let voteOptions = [1,2,3,4,5,6];
 
@@ -172,7 +212,7 @@ class RankItApp {
 			button.dataset.value = value;
 
 			button.addEventListener('click', () => {
-				this.castVote(playerID, value);
+				this.castVote(playerID, value, el);
 			})
 
 			el.appendChild(button);
@@ -183,23 +223,52 @@ class RankItApp {
 	}
 
 
-	async castVote(playerID, value) {
+	async castVote(playerID, value, voteContainer) {
 
+		let voteFailed = false;
 		let requestURL = this.apiPath + '/vote/' + playerID;
 
 		let postData = new FormData();
 		postData.append('match_id', this.matchID);
+		postData.append('hash', this.userHash);
 		postData.append('score', value);
 
+		let voteHash;
 		await axios.post(requestURL,postData)
-		.then(function (response) {response.data; })
+		.then(function (response) {
+			voteHash = response.data;
+		}).catch(err => {
+			console.error('RankIT - Error Vote already Cast: ' + err.message);
+			voteContainer.innerHTML = `<div class="${this.prefix}vote-error">Mehrfach Abstimmung nicht möglich</div>`;
+			voteFailed = true;
+		})
 
-		this.loadMatchData(this.matchID).then(() => {
-			this.refreshMain()
-		 })
+		if (voteFailed) {return false;}
+
+		if (!this.userHash) {
+			this.voteCookie.content = voteHash;
+			this.userHash = voteHash;
+		}
+
+		if (!this.castVotes[this.matchID]) {this.castVotes[this.matchID] = [];}
+		this.castVotes[this.matchID].push(playerID);
+
+		this.loadMatchData(this.matchID).then(() => {this.refreshMain()})
 
 	}
 
+
+	checkCookie() {
+
+		if (this.voteCookie == null) {
+			this.voteCookie = new FlundrCookieManager(this.voteCookieName, this.voteCookieDuration);
+		}
+
+		if (this.voteCookie.exists) {
+			this.userHash = this.voteCookie.content;
+		}
+
+	}
 
 	async loadMatches() {
 
@@ -242,6 +311,8 @@ class RankItApp {
 	createFooter() {
 		let el = document.createElement('footer');
 		el.classList.add(this.prefix + 'footer')
+
+		el.innerHTML = `<footer class="${this.prefix}footer">powered by flundr!</footer>`
 		return el;
 	}
 
@@ -270,8 +341,6 @@ class RankItApp {
 
 }
 
-
-
 class FlundrDateParser {
 
 	format(datestring, format) {
@@ -279,6 +348,9 @@ class FlundrDateParser {
 		let day = date.getDate();
 		let month = date.getMonth()+1;
 		let year = date.getFullYear();
+
+		day = day.toString().padStart(2,0);
+		month = month.toString().padStart(2,0);
 
 		switch (format) {
 			case 'de':
@@ -311,6 +383,94 @@ class FlundrDateParser {
 
 	edate(datestring) {
 		return this.format(datestring);
+	}
+
+}
+
+class FlundrCookieManager {
+
+	// Usage: create new Instance e.g. myCookie = new FlundrCookieManager('cookiename', '30');
+	// First parameter is the Cookies name, second is the Expiretime in Days
+	// get Cookie data with: myCookie.content;
+	// set Cookie data with: myCookie.content = 'Value';
+
+	constructor(cookieName = 'fl-default-cookie', expireDays = 365) {
+		this.cookieName = cookieName;
+		this.expireDays = expireDays;
+	}
+
+	get content() {return this.get_content();}
+	set content(data) {this.set_content(data);}
+
+	get expire() {return this.expireDays;}
+	set expire(days) {this.expireDays = days;}
+
+	get name() {return this.expireDays;}
+	set name(cookieName) {this.cookieName = cookieName;}
+
+	get isset() {return this.is_active();}
+	get exists() {return this.is_active();}
+
+	get_content() {
+		let content = document.cookie.split('; ');
+
+		content = content.find(row => row.startsWith(this.cookieName+'='));
+
+		if (!content) {return;}
+		content = content.split('=')[1];
+
+		if (content.startsWith('{')) {content = JSON.parse(content);}
+		return content;
+	}
+
+	set_content(data) {
+
+		if (typeof(data) === 'object') {
+			data = JSON.stringify(data);
+		}
+
+		let expire = '';
+		if (this.expireDays) {
+			expire = this.expire_from_now(this.expireDays);
+			expire = new Date(expire).toUTCString();
+			expire = ` expires=${expire};`;
+		}
+
+		let cookieString = `${this.cookieName}=${data}; SameSite=Lax; ${expire} ${this.secure()};path=/`;
+		document.cookie = cookieString;
+	}
+
+	is_active() {
+		if (document.cookie.split(';').some((item) => item.trim().startsWith(this.cookieName + '='))) {
+			return true;
+		}
+		return false;
+	}
+
+	secure() {
+		if (location.protocol === 'https:') { return 'Secure';}
+		return '';
+	}
+
+	check_value(cookieName, cookieValue) {
+		return document.cookie.split(';').some((item) => item.includes(cookieName+'='+cookieValue));
+	}
+
+	min_to_ms(minutes) {return minutes*60*1000;}
+	days_to_ms(days) {return days*24*60*60*1000;}
+
+	expire_from_now(amountOfTime, timeFrame = 'days') {
+		let date = new Date();
+		let expireTime = this.days_to_ms(amountOfTime);
+
+	    date.setTime(date.getTime() + expireTime);
+		return date.toLocaleString("en-US", {timeZone: "Europe/Berlin"})
+		//return date.toUTCString();
+	}
+
+	delete() {
+		let cookieString = `${this.cookieName}=''; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${this.secure()}`;
+		document.cookie = cookieString;
 	}
 
 }

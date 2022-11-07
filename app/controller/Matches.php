@@ -19,17 +19,20 @@ class Matches extends Controller {
 	public function detail($id) {
 		$match = $this->Matches->get($id);
 		$match['players'] = $this->Players->by_match($id, $match['players']);
+		header('Access-Control-Allow-Origin: *');
 		$this->view->json($match);
 	}
 
 	public function latest() {
 		$match = $this->Matches->latest();
 		$match['players'] = $this->Players->by_match($match['id'], $match['players']);
+		header('Access-Control-Allow-Origin: *');
 		$this->view->json($match);
 	}
 
 	public function list() {
 		$matches = $this->Matches->list(5);
+		header('Access-Control-Allow-Origin: *');
 		$this->view->json($matches);
 	}
 
