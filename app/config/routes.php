@@ -24,6 +24,8 @@ $routes->get('/cms/matches', 'Matches@index');
 $routes->get('/cms/matches/create', 'Matches@create');
 $routes->post('/cms/matches/create', 'Matches@save');
 $routes->get('/cms/matches/{id:\d+}', 'Matches@edit');
+$routes->post('/cms/matches/{matchID:\d+}/vote/{playerID:\d+}', 'Vote@cast_internal');
+$routes->get('/cms/matches/{id:\d+}/vote', 'Matches@vote');
 $routes->post('/cms/matches/{id:\d+}', 'Matches@update');
 $routes->get('/cms/matches/{id:\d+}/delete', 'Matches@delete');
 

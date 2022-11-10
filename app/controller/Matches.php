@@ -36,6 +36,17 @@ class Matches extends Controller {
 		$this->view->json($matches);
 	}
 
+	public function vote($id) {
+
+		$match = $this->Matches->get($id);
+	
+		$this->view->players = $this->Players->by_match($id, $match['players']);
+		$this->view->match = $match;
+
+		$this->view->render('matches/vote');
+
+	}
+
 
 
 	public function create() {
@@ -57,7 +68,7 @@ class Matches extends Controller {
 		else {$_POST['players'] = null;}
 
 		$this->Matches->create($_POST);
-		$this->view->redirect('/cms/matches');
+		$this->view->redirect('/cms');
 	}
 
 	public function edit($id) {
@@ -80,12 +91,12 @@ class Matches extends Controller {
 		else {$_POST['players'] = null;}
 
 		$this->Matches->update($_POST,$id);
-		$this->view->redirect('/cms/matches');
+		$this->view->redirect('/cms');
 	}
 
 	public function delete($id) {
 		$this->Matches->delete($id);
-		$this->view->redirect('/cms/matches');
+		$this->view->redirect('/cms');
 	}
 
 }

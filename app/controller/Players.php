@@ -24,8 +24,8 @@ class Players extends Controller {
 	}
 
 	public function get($id) {
-		dd($this->Players->get($id));
-		//$this->view->render('example');
+		$player = $this->Players->get($id);
+		$this->view->json($player);
 	}
 
 
@@ -33,6 +33,7 @@ class Players extends Controller {
 	public function index() {
 		$this->view->teams = $this->Teams->all();
 		$this->view->players = $this->Players->all();
+		$this->view->title = 'Spielerübersicht';
 		$this->view->render('players/list');
 	}
 

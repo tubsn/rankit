@@ -10,8 +10,8 @@
 		<input type="text" name="city" placeholder="z.B. Cottbus">
 	</label>
 
-	<label>Sitzplätze:
-		<input type="number" name="number">
+	<label>Kapazität:
+		<input type="number" name="seats">
 	</label>
 
 	<button type="submit">Anlegen</button>

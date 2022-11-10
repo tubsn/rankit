@@ -61,10 +61,14 @@
 	</fieldset>
 
 <style>
-.player-list {list-style-type: none; display:flex; gap:1em; max-width:900px; background-color: #f0f0f0; padding:1em;}
+.player-list {list-style-type: none; display:flex; flex-wrap: wrap; gap:1em; background-color: #f0f0f0; padding:1em;}
 .player-list li {margin:0; padding:0; }
 .player-list li label {cursor:pointer; padding:1em; display:inline-block; background-color:white;}
 </style>
+
+	<label>Notizen zum Spiel
+	<textarea name="info" placeholder="z.B. Spieler XY außer Wertung weil eingewechselt..."></textarea>
+	</label>
 
 
 	<button type="submit">Spiel anlegen</button>

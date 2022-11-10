@@ -39,9 +39,6 @@
 		</select>
 	</label>
 
-	</fieldset>
-
-
 	<label>Stadion:
 	<select name="location_id">
 		<option value="0">offen</option>
@@ -55,6 +52,11 @@
 	</select>
 	</label>
 
+	</fieldset>
+
+
+
+
 
 	<?php
 	if ($match['players'] ) {
@@ -62,19 +64,19 @@
 	} else {$match['players'] = [];}
 	?>
 
-	<fieldset class="box mb">
-	<label>aktive Spieler:</label><br/>
+	<fieldset class="box">
+	<label>Teilnehmende Spieler (<span class="js-counter">x</span> von 11):</label><br/>
 
 	<ul class="player-list">
 	<?php foreach ($players as $player): ?>
 	<li>
-	<label>
+	<label class="js-player">
 		<?php if (in_array($player['id'], $match['players'])): ?>
 		<input type="checkbox" name="players[]" checked value="<?=$player['id']?>">
 		<?php else: ?>
 		<input type="checkbox" name="players[]" value="<?=$player['id']?>">
 		<?php endif; ?>
-		<?=$player['lastname']?>, <?=$player['firstname']?>  (<?=$player['position']?>)
+		<?=$player['number']?>. <?=$player['lastname']?>, <?=$player['firstname']?>  (<?=$player['position']?>)
 	</label>
 	</li>
 	<?php endforeach; ?>
@@ -83,11 +85,16 @@
 	</fieldset>
 
 <style>
-.player-list {list-style-type: none; display:flex; gap:1em; max-width:900px; background-color: #f0f0f0; padding:1em;}
+.player-list {list-style-type: none; display:flex; flex-wrap: wrap; gap:1em; background-color: #f0f0f0; padding:1em;}
 .player-list li {margin:0; padding:0; }
 .player-list li label {cursor:pointer; padding:1em; display:inline-block; background-color:white;}
 </style>
 
+	<fieldset>
+	<label>Notizen zum Spiel (optional):
+	<textarea name="info" placeholder="z.B. Spieler XY außer Wertung weil eingewechselt..."><?=$match['info']?></textarea>
+	</label>
+	</fieldset>
 
 	<button type="submit">Speichern</button>
 	&ensp;

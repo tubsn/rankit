@@ -10,8 +10,8 @@
 		<input type="text" value="<?=$location['city']?>" name="city" placeholder="z.B. Cottbus">
 	</label>
 
-	<label>Sitzplätze:
-		<input type="number" value="<?=$location['seats']?>" name="number">
+	<label>Kapazität:
+		<input type="number" value="<?=$location['seats']?>" name="seats">
 	</label>
 
 	<button type="submit">Speichern</button>

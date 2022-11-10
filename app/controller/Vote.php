@@ -48,7 +48,25 @@ class Vote extends Controller {
 		];
 
 		$this->Scores->create($data);
+
+		header('Access-Control-Allow-Origin: *');
 		$this->view->json($userHash);
+
+	}
+
+	public function cast_internal($matchID, $playerID) {
+
+		$score = $_POST['score'];
+
+		$data = [
+			'player_id' => $playerID,
+			'match_id' => $matchID,
+			'score' => $score,
+			'creator' => 'editor',
+		];
+
+		$this->Scores->create($data);
+		$this->view->redirect('/cms/matches/' . $matchID . '/vote');
 
 	}
 

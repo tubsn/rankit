@@ -20,7 +20,8 @@ class Players extends Model
 		$SQLstatement = $this->db->connection->prepare(
 			"SELECT players.*, teams.rankable as rankable FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
-			WHERE rankable = 1"
+			WHERE rankable = 1
+			ORDER BY players.number"
 		);
 
 		$SQLstatement->execute();
@@ -30,17 +31,36 @@ class Players extends Model
 	public function get($id, $columns = null) {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.name as team, (
-					SELECT avg(score) FROM scores
+			"SELECT players.*, TIMESTAMPDIFF(YEAR, players.birthday, CURDATE()) AS age, teams.name as team, 
+
+				(
+					SELECT round(avg(score),1) FROM scores
 					WHERE scores.player_id = :ID
+					AND creator = 'fan'
 					AND scores.date > NOW() - INTERVAL 1 MONTH
 				) as score,
 
 				(
 					SELECT count(score) FROM scores
 					WHERE scores.player_id = :ID
+					AND creator = 'fan'
 					AND scores.date > NOW() - INTERVAL 1 MONTH
-				) as votes
+				) as votes,
+
+				(
+					SELECT round(avg(score),1) FROM scores
+					WHERE scores.player_id = :ID
+					AND creator = 'editor'
+					AND scores.date > NOW() - INTERVAL 1 MONTH
+				) as score_internal,
+
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = :ID
+					AND creator = 'editor'
+					AND scores.date > NOW() - INTERVAL 1 MONTH
+				) as votes_internal				
+
 
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
@@ -62,14 +82,31 @@ class Players extends Model
 				round((
 					SELECT avg(score) FROM scores
 					WHERE scores.player_id = players.id
+					AND creator = 'fan'
 					AND match_id = $matchID
 
 				),1) as score,
 				(
 					SELECT count(score) FROM scores
 					WHERE scores.player_id = players.id
+					AND creator = 'fan'
 					AND match_id = $matchID
-				) as votes
+				) as votes,
+
+				round((
+					SELECT avg(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND creator = 'editor'
+					AND match_id = $matchID
+
+				),1) as score_internal,
+				(
+					SELECT count(score) FROM scores
+					WHERE scores.player_id = players.id
+					AND creator = 'editor'
+					AND match_id = $matchID
+				) as votes_internal
+
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE players.id IN ($playerIDs)
