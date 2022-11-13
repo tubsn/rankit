@@ -25,10 +25,15 @@ class Players extends Controller {
 
 	public function get($id) {
 		$player = $this->Players->get($id);
+		header('Access-Control-Allow-Origin: *');
 		$this->view->json($player);
 	}
 
-
+	public function development($id) {
+		header("Content-type: application/json; charset=utf-8");
+		header('Access-Control-Allow-Origin: *');
+		echo $this->Players->development_chartdata($id);
+	}
 
 	public function index() {
 		$this->view->teams = $this->Teams->all();

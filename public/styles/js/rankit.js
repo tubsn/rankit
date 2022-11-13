@@ -2,7 +2,7 @@ class RankItApp {
 
 	constructor(container, matchID) {
 		this.matchID = matchID || null;
-		this.apiPath = 'https://rankit.lr-digital.de';
+		this.apiPath = 'http://app3.localhost';
 		this.container = container;
 		this.scrollContainer = null;
 		this.header = null;
@@ -54,14 +54,13 @@ class RankItApp {
 		if (this.matchID) {this.container.id = this.prefix + 'match-' + this.matchID;}
 	}
 
-
-	refreshMain() {
+	refreshMain(animate = true) {
 
 		let scrollPosition = 0;
 		if (this.scrollContainer) {scrollPosition = this.scrollContainer.scrollTop;}
 
 		this.main.innerHTML = '';
-		this.main.appendChild(this.matchDetail());
+		this.main.appendChild(this.matchDetail(animate));
 
 		if (this.scrollContainer) {this.scrollContainer.scrollTop = scrollPosition;}
 
@@ -81,7 +80,7 @@ class RankItApp {
 			entryElement.dataset.id = match.id;
 			entryElement.innerHTML = `
 			<span class="${this.prefix}match-date">${this.gsd(match.date)}</span>
-			<span class="${this.prefix}match-teams" title="${match.home_team} vs. ${match.away_team}">${match.home_team} vs. ${match.away_team}</span>
+			<span class="${this.prefix}match-teams" title="${match.home_team} vs. ${match.away_team}">${match.home_team_short || match.home_team} vs. ${match.away_team_short || match.away_team}</span>
 			`;
 
 			entryElement.addEventListener('click', () => {
@@ -102,12 +101,16 @@ class RankItApp {
 
 	}
 
-	matchDetail() {
+	matchDetail(animate = true) {
 
 		let info = '';
 		let match = this.matchdata;
 		let el = document.createElement('article');
 		el.classList.add(this.prefix + 'match-detail');
+
+		if (animate) {
+			el.classList.add(this.prefix + 'animation-slide-bottom');
+		}
 
 		if (match.info != null && match.info != '') {
 			info = `<p class="${this.prefix}match-info">${match.info}</p>`;
@@ -115,17 +118,68 @@ class RankItApp {
 
 		el.innerHTML = `
 		<div class="${this.prefix}match-header">
-			<h1>${match.home_team} <span class="${this.prefix}versus">vs.</span> ${match.away_team}</h1>
+			<h1>${match.home_team_short || match.home_team} <span class="${this.prefix}versus">vs.</span> ${match.away_team_short || match.away_team}</h1>
 			<p>${match.location || 'Spielort offen'} <span class="${this.prefix}bar">|</span> ${this.gd(match.date)} ${this.time(match.date)} Uhr</p>
-			${info} 
+			${info}
 		</div>`;
 
+		el.prepend(this.sortButtonTPL());
 		el.appendChild(this.playerList());
 
 		this.scrollContainer = el;
 		return el;
 
 	}
+
+	sortButtonTPL() {
+
+		let sortBtn = document.createElement('div');
+		sortBtn.classList.add(this.prefix + 'sort-btn');
+		//sortBtn.classList.add(this.prefix + 'btn');
+		sortBtn.innerHTML = '<img src="https://rankit.lr-digital.de/assets/sort.svg">';
+
+		let sortNameASC = document.createElement('div');
+		sortNameASC.classList.add(this.prefix + 'sort-menu-entry');
+		sortNameASC.innerText = 'nach Namen aufsteigend';
+
+		let sortNameDESC = document.createElement('div');
+		sortNameDESC.classList.add(this.prefix + 'sort-menu-entry');
+		sortNameDESC.innerText = 'nach Namen absteigend';
+
+		let sortVoteASC = document.createElement('div');
+		sortVoteASC.classList.add(this.prefix + 'sort-menu-entry');
+		sortVoteASC.innerText = 'nach Wertung aufsteigend';
+
+		let sortVoteDESC = document.createElement('div');
+		sortVoteDESC.classList.add(this.prefix + 'sort-menu-entry');
+		sortVoteDESC.innerText = 'nach Wertung absteigend';
+
+		sortNameASC.addEventListener('click', (e) => {
+			this.matchdata.players.sort((a,b) => (a.lastname > b.lastname)); this.refreshMain(false);
+		})
+
+		sortNameDESC.addEventListener('click', (e) => {
+			this.matchdata.players.sort((a,b) => (a.lastname < b.lastname)); this.refreshMain(false);
+		})
+
+		sortVoteASC.addEventListener('click', (e) => {
+			this.matchdata.players.sort((a,b) => (a.score > b.score)); this.refreshMain(false);
+		})
+
+		sortVoteDESC.addEventListener('click', (e) => {
+			this.matchdata.players.sort((a,b) => (a.score < b.score)); this.refreshMain(false);
+		})
+
+
+		sortBtn.appendChild(sortNameASC);
+		sortBtn.appendChild(sortNameDESC);
+		sortBtn.appendChild(sortVoteASC);
+		sortBtn.appendChild(sortVoteDESC);
+
+		return sortBtn;
+
+	}
+
 
 
 	playerList() {
@@ -146,30 +200,29 @@ class RankItApp {
 
 	}
 
-
 	playerTPL(player, voting) {
 
 		let number;
 		if (player.number == 0) { number = '';}
 		else {number = '#' + player.number;}
 
-		if (!player.thumbnail) {player.thumbnail = 'https://rankit.lr-digital.de/assets/default.svg';}
+		if (!player.thumbnail) {player.thumbnail = this.apiPath + '/assets/default.svg';}
 
 		let el = document.createElement('div');
 		el.classList.add(this.prefix + 'player-box');
 		el.innerHTML = `
 
-		<figure class="${this.prefix}player-image"><img src="${player.thumbnail}"></figure>
+		<figure class="${this.prefix}player-image"><img class="${this.prefix}player-image-element" src="${player.thumbnail}"></figure>
 		<div class="${this.prefix}player-info">
 			<div class="${this.prefix}player-name">${player.firstname} ${player.lastname}&nbsp;<small>${number}</small></div>
-			<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> Alter: ${player.age}</div>
+			<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> Alter:&nbsp;${player.age}</div>
 			<div class="${this.prefix}player-verein">Verein: ${player.team}</div>
 		</div>
 
 		<div class="${this.prefix}player-score">
 			<div class="${this.prefix}player-score-number ${this.scoreClass(player.score)}">${player.score || '-'}</div>
-			<div>Leserwertung</div>
-			<div class="${this.prefix}player-score-votes">Stimmen: ${player.votes || 'keine'}</div>
+			<div>Lesernote</div>
+			<div class="${this.prefix}player-score-votes">Stimmen: ${player.votes || '-'}</div>
 		</div>
 
 		<div class="${this.prefix}player-score ${this.prefix}player-score-editor">
@@ -180,7 +233,7 @@ class RankItApp {
 		`;
 
 		el.addEventListener('click', (e) => {
-			if (e.target.classList.contains(`${this.prefix}player-name`)) {
+			if (e.target.classList.contains(`${this.prefix}player-name`) || e.target.classList.contains(`${this.prefix}player-image-element`)) {
 				this.playerStatsTPL(player.id);
 			}
 		})
@@ -200,48 +253,63 @@ class RankItApp {
 		if (player.number == 0) { number = '';}
 		else {number = '#' + player.number;}
 
-		let tpl = `<div class="${this.prefix}player-detail">
-		<h3>Wertung der letzten Spiele:</h3>
+		let playerContainer = document.createElement('div');
+		playerContainer.classList.add(this.prefix + 'player-detail');
 
-		<div class="ri-player-list-entry" style="margin-bottom:.5em;">
+		let backButton = document.createElement('div');
+		backButton.classList.add(this.prefix + 'btn');
+		backButton.classList.add(this.prefix + 'player-back-btn-top');
+		backButton.innerText = 'zur Übersicht';
 
+		backButton.addEventListener('click', (e) => {
+			this.main.innerHTML = '';
+			this.main.appendChild(this.matchDetail());
+		})
+
+		if (player.info) {player.info = `<div class="${this.prefix}player-note">${player.info}</div>`;}
+
+		let tpl = `<h3>Spieler-Profil und Entwicklung</h3>
 		<div class="${this.prefix}player-box">
-		<figure class="${this.prefix}player-image"><img src="${player.thumbnail}"></figure>
-		<div class="${this.prefix}player-info">
-			<div class="${this.prefix}player-name">${player.firstname} ${player.lastname}&nbsp;<small>${number}</small></div>
-			<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> Alter: ${player.age}</div>
-			<div class="${this.prefix}player-verein">Verein: ${player.team}</div>
+			<figure class="${this.prefix}player-image"><img src="${player.thumbnail}"></figure>
+			<div class="${this.prefix}player-info">
+				<div class="${this.prefix}player-name">${player.firstname} ${player.lastname}&nbsp;<small>${number}</small></div>
+				<div class="${this.prefix}player-stats">Position: <span class="${this.prefix}player-position">${player.position || 'keine'}</span> Alter: ${player.age}</div>
+				<div class="${this.prefix}player-verein">Verein: ${player.team}</div>
+			</div>
+
+
+			<div class="${this.prefix}player-score">
+				<div class="${this.prefix}player-score-number ${this.scoreClass(player.score)}">${player.score || '-'}</div>
+				<div>Ø-Lesernote</div>
+				<div class="${this.prefix}player-score-votes">Stimmen: ${player.votes || '-'}</div>
+			</div>
+
+			<div class="${this.prefix}player-score ${this.prefix}player-score-editor">
+				<div class="${this.prefix}player-score-number ${this.scoreClass(player.score_internal)}">${player.score_internal || '-'}</div>
+				<div>Ø-Redaktion</div>
+			</div>
 		</div>
 
-		<div class="${this.prefix}player-score">
-			<div class="${this.prefix}player-score-number ${this.scoreClass(player.score)}">${player.score || '-'}</div>
-			<div>Leserwertung</div>
-			<div class="${this.prefix}player-score-votes">Stimmen: ${player.votes || 'keine'}</div>
-		</div>
-
-		<div class="${this.prefix}player-score ${this.prefix}player-score-editor">
-			<div class="${this.prefix}player-score-number ${this.scoreClass(player.score_internal)}">${player.score_internal || '-'}</div>
-			<div>Redaktion</div>
-		</div>
-		</div>
-
-		</div>
-
-		<div class="ri-player-list-entry" style="margin-bottom:1em;">
-		<div class="chart" style="width:90%; margin:0 auto; " id="chart"></div>
-		</div>
-
-		</div>
+		${player.info || ''}
 
 		`;
 
-		this.main.innerHTML = tpl;
+		playerContainer.innerHTML = tpl;
+		playerContainer.prepend(backButton);
 
-		this.testchart();
+		// Chart Container has to be placed in DOM before rendering
+		let chartContainer = document.createElement('div');
+		chartContainer.classList.add(this.prefix + 'player-chart');
+		playerContainer.appendChild(chartContainer);
+
+		this.main.innerHTML = null;
+		this.main.appendChild(playerContainer);
+
+		//chart Rendering
+		this.initPlayerDevelopmentChart(chartContainer);
+
 
 	}
-
-
 
 	scoreClassWithBackground(score) {return this.scoreClass(score,true);}
 
@@ -262,7 +330,6 @@ class RankItApp {
 
 	}
 
-
 	voteNotAvailable() {
 
 		let matchDate = new Date(this.matchdata.date);
@@ -277,31 +344,46 @@ class RankItApp {
 
 		let matchDate = new Date(this.matchdata.date);
 		let date = new Date();
-		date.setDate(date.getDate() - 7);
+		date.setDate(date.getDate() - 3);
 
 		if (matchDate < date) {return true;}
 		return false;
 
 	}
 
+	voteAlreadyCast(playerID) {
+		if (this.castVotes[this.matchID] && this.castVotes[this.matchID].includes(playerID)) {return true;}
+		return false;
+	}
+
 	voteTPL(playerID) {
 
-		let el = document.createElement('div');
-		el.classList.add(this.prefix + 'vote-container');
+		let voteContainer = document.createElement('div');
+		voteContainer.classList.add(this.prefix + 'vote-container');
 
-		if (this.voteTimePassed()) {
-			el.innerHTML = `<div class="${this.prefix}vote-denied">Zeitraum abgelaufen</div>`; return el;
+		switch (this.matchdata.status) {
+			case 'pending':
+				voteContainer.innerHTML = `<div class="${this.prefix}vote-denied">Wertung noch nicht möglich</div>`;
+				return voteContainer;
+				break;
+
+			case 'running':
+				voteContainer.innerHTML = `<div class="${this.prefix}vote-denied">Spiel läuft noch</div>`;
+				return voteContainer;
+				break;
+
+			case 'passed':
+				voteContainer.innerHTML = `<div class="${this.prefix}vote-denied">Zeitraum abgelaufen</div>`;
+				return voteContainer;
+				break;
 		}
 
-		if (this.voteNotAvailable()) {
-			el.innerHTML = `<div class="${this.prefix}vote-denied">Wertung noch nicht möglich</div>`; return el;
+		if (this.voteAlreadyCast(playerID)) {
+			voteContainer.innerHTML = `<div class="${this.prefix}vote-is-cast">Bewertung gespeichert</div>`;
+			return voteContainer;
 		}
 
-		if (this.castVotes[this.matchID] && this.castVotes[this.matchID].includes(playerID)) {
-			el.innerHTML = `<div class="${this.prefix}vote-is-cast">Bewertung gespeichert</div>`; return el;
-		}
-
-		el.title = 'Schulnoten: 1 super - 6 schlecht'
+		voteContainer.title = 'Schulnoten: 1 super - 6 schlecht'
 		let voteOptions = [1,2,3,4,5,6];
 
 		voteOptions.forEach((value) => {
@@ -313,16 +395,15 @@ class RankItApp {
 			button.dataset.value = value;
 
 			button.addEventListener('click', () => {
-				this.castVote(playerID, value, el);
+				this.castVote(playerID, value, voteContainer);
 			})
 
-			el.appendChild(button);
+			voteContainer.appendChild(button);
 		});
 
-		return el;
+		return voteContainer;
 
 	}
-
 
 	async castVote(playerID, value, voteContainer) {
 
@@ -337,7 +418,7 @@ class RankItApp {
 		let voteHash;
 		await axios.post(requestURL,postData)
 		.then(function (response) {
-			voteHash = response.data;
+			voteHash = response.data.voteHash || null;
 		}).catch(err => {
 			console.log('RankIT - Vote already Cast: ' + err.message);
 			voteContainer.innerHTML = `<div class="${this.prefix}vote-error">Sie haben bereits abgestimmt</div>`;
@@ -346,7 +427,7 @@ class RankItApp {
 
 		if (voteFailed) {return false;}
 
-		if (!this.userHash) {
+		if (!this.userHash && voteHash) {
 			this.voteCookie.content = voteHash;
 			this.userHash = voteHash;
 		}
@@ -354,10 +435,9 @@ class RankItApp {
 		if (!this.castVotes[this.matchID]) {this.castVotes[this.matchID] = [];}
 		this.castVotes[this.matchID].push(playerID);
 
-		this.loadMatchData(this.matchID).then(() => {this.refreshMain()})
+		this.loadMatchData(this.matchID).then(() => {this.refreshMain(false)})
 
 	}
-
 
 	checkCookie() {
 
@@ -383,8 +463,6 @@ class RankItApp {
 		this.matches = matches;
 
 	}
-
-
 	async loadMatchData(id) {
 
 		let matchdata;
@@ -399,7 +477,6 @@ class RankItApp {
 		this.matchdata = matchdata;
 
 	}
-
 	async loadPlayerData(id) {
 
 		let playerdata;
@@ -413,8 +490,6 @@ class RankItApp {
 		this.playerdata = playerdata;
 
 	}
-
-
 
 	createHeader() {
 		let el = document.createElement('header');
@@ -434,7 +509,7 @@ class RankItApp {
 		let el = document.createElement('footer');
 		el.classList.add(this.prefix + 'footer')
 
-		el.innerHTML = `<footer class="${this.prefix}footer">powered by flundr - portraits by FC Energie Cottbus e.V.</footer>`
+		el.innerHTML = `<footer class="${this.prefix}footer">powered by flundr and lr.de</footer>`
 
 		el.addEventListener('click', () => {
 			let main = document.querySelector(`.${this.prefix}match-detail`);
@@ -448,7 +523,6 @@ class RankItApp {
 	gsd(date) {return this.dateParser.gsdate(date);}
 	ed(date) {return this.dateParser.edate(date);}
 	time(date) {return this.dateParser.time(date);}
-
 
 	/*
 	alpineStuff() {
@@ -466,64 +540,225 @@ class RankItApp {
 	}
 	*/
 
+	async initPlayerDevelopmentChart(chartContainer) {
 
+		let requestURL = this.apiPath + '/player/' + this.playerdata.id + '/development';
+		let votes;
 
-	testchart() {
+		await axios.get(requestURL)
+		.then(function (response) {votes = response.data;})
 
-let options = {
-	series: [
-				{
-			name: 'Score', color: '#5ad9a4',
-			data: [2.1,3.2,5.4,1.4,4.3],
-		},
-			],
-	chart: {
-		height: 300,
-		type: 'area',
-		toolbar: {show:false},
-		zoom: {enabled:false},
-		animations: {enabled: true},
-		sparkline: {enabled: false},
-		stacked: false,
+		// No need to show Chart with less then 2 Matches
+		if (votes.editor.chart.dimension.length && votes.editor.chart.dimension.length < 2) {return;}
 
-	},
+		let chartMetrics = [
+			{name: 'Leser', color: '#9bb6db',
+			data: votes.fan.chart.metric },
 
-	tooltip: {enabled: false,},
-	
-	legend: {show:false,},
-	
-	stroke: {curve: 'smooth'},
-	dataLabels: {enabled: true,},
+			{name: 'Redaktion', color: '#f58fae',
+			data: votes.editor.chart.metric, },
+		];
 
-	xaxis: {
-		categories: ['2022-10-10','2022-10-11','2022-10-12','2022-10-13','2022-10-14'],
-		crosshairs: {show: false},
-		labels: {
-			show: true,
-			style: {
-				colors: '#ffffff',
-				fontSize: '13px',
-			},
-		},
-	},
+		let chartDimensions = votes.editor.chart.dimension;
+		let chartOptions = {height:250, type: 'line'};
 
-	yaxis: {
-		//tickAmount: 4,
-		labels: {rotate: 0, show: false,},
-	},
-
-	states: {active: {allowMultipleDataPointsSelection: false}},
-	grid: {show:false,},
-
-}
-
-let chart = new ApexCharts(document.querySelector("#chart"), options);
-chart.render();
+		return new FlundrToAphexChartInterface(chartContainer, chartMetrics, chartDimensions, chartOptions);
 
 	}
 
+}
 
 
+class FlundrToAphexChartInterface {
+
+	constructor(container, metrics, dimensions, userOptions = null) {
+
+		this.container = container
+		this.metrics = metrics;
+		this.dimensions = dimensions;
+		this.options = this.defaultOptions();
+		this.userOptions = userOptions;
+		this.init();
+
+	}
+
+	init() {
+
+		this.applyUserOptions();
+
+		let chart = new ApexCharts(this.container, this.options);
+		chart.render();
+
+		return this.container;
+	}
+
+	applyUserOptions() {
+
+		if (!this.userOptions) {return;}
+		let user = this.userOptions;
+
+		if (user.height) {this.options.chart.height = user.height};
+		if (user.type) {this.options.chart.type = user.type};
+
+		if (user.type == 'line' || user.type == 'area') {this.options.dataLabels.style.colors = ['#1a1d26']};
+		if (user.type == 'bar') {
+			this.options.dataLabels.style.colors = ['#ffffff']
+			this.options.stroke.width = 0
+		};
+
+		if (user.labelColor) {this.options.dataLabels.style.colors = [user.labelColor]}
+
+	}
+
+	defaultOptions() {
+
+		let options = {
+
+			series: this.metrics,
+
+			title: {
+				text: 'Spielverlauf',
+				align: 'left',
+				margin: 0,
+				offsetX: -10,
+				offsetY: 3,
+				floating: true,
+				style: {
+					fontSize:  '18px',
+					fontWeight:  'bold',
+					color:  '#b0c5d9'
+				},
+			},
+
+			chart: {
+				height: 350,
+				type: 'bar',
+				toolbar: {show:false},
+				zoom: {enabled:false},
+				animations: {enabled: true},
+				sparkline: {enabled: false},
+				stacked: false,
+			},
+
+			stroke: {
+				width: 3,
+				curve: 'straight',
+				//dashArray: [4,4]
+			},
+
+			//forecastDataPoints: {count: 2},
+
+			markers: {
+				size: 6,
+				colors: undefined,
+				strokeColors: '#fff',
+				strokeWidth: 2,
+				strokeOpacity: 0.9,
+				fillOpacity: 0.1,
+				shape: "circle",
+				showNullDataPoints: true,
+				hover: {sizeOffset: 3}
+			},
+
+			plotOptions: {
+				bar: {dataLabels: {position: 'center',}}
+			},
+
+			tooltip: {
+				enabled: true,
+				theme: 'dark',
+				shared: true,
+				intersect: false,
+				x: {show: true},
+			},
+
+			legend: {
+				show:true,
+				position: 'top',
+				floating: true,
+				horizontalAlign: 'right',
+				labels: {colors: ['#ffffff']},
+				onItemHover: {
+					highlightDataSeries: false
+				},
+			},
+
+			dataLabels: {
+				enabled: false,
+				style: {colors: '#b0c5d9'},
+				background: {
+					foreColor: '#b0c5d9',
+					padding: 8,
+					borderRadius: 2,
+					borderWidth: 0,
+					borderColor: '#fff',
+					opacity: 0.9,
+				},
+				formatter: function(value) {
+					if (value > 0) {
+						value = Math.abs(3.5 - value)
+						return Math.round(value*10) / 10;
+					}
+					value = Math.abs(value - 3.5)
+					return Math.round(value*10) / 10;
+				}
+			},
+
+			xaxis: {
+				tooltip: {enabled: false},
+				categories: this.dimensions,
+				crosshairs: {show: false},
+				axisBorder: {show: false},
+				axisTicks: {show: false},
+				labels: {
+					show: true,
+					style: {
+						colors: '#b0c5d9',
+						fontSize: '13px',
+					},
+					rotate: -90,
+					//rotateAlways: false,
+				},
+			},
+
+			yaxis: {
+				//tickAmount: 4,
+				labels: {
+					show: false,
+					formatter: function(value) {
+						if (value > 0) {
+							value = Math.abs(3.5 - value)
+							return Math.round(value*10) / 10;
+						}
+						value = Math.abs(value - 3.5)
+						return Math.round(value*10) / 10;
+					},
+				},
+			},
+
+			grid: {
+				show: true,
+				borderColor: '#3f506a',
+				strokeDashArray: 2,
+				position: 'back',
+				xaxis: {lines: {show: false}},
+				yaxis: {lines: {show: false}},
+
+				row: {
+					//colors: ['#b0c5d9','transparent'],
+					opacity: 0.1
+				},
+				column: {
+					//colors: ['#b0c5d9', 'transparent'],
+					opacity: 0.1
+				},
+			}
+
+		}
+
+		return options;
+
+	}
 
 }
 
@@ -667,18 +902,21 @@ class RankItLoader {
 		this.app;
 		this.matchID = matchID;
 		this.container = this.createContainerNode();
-		this.init();
+
+		try {this.init();}
+		catch (error) {console.error(error);}
+
 	}
 
 	init() {
 
-		this.loadCSS('https://rankit.lr-digital.de/styles/css/rankit.css');
+		this.loadCSS('http://app3.localhost/styles/css/rankit.css');
 		this.requirePackages()
 			.then(() => {
 				this.app = new RankItApp(this.container, this.matchID);
 			})
 			.catch(err => {
-				console.error('RankIT - Error while loading Dependencies: ' + err.message);
+				console.error('RankIT - Error: ' + err.message);
 			})
 	}
 

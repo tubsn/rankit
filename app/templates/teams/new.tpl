@@ -1,9 +1,13 @@
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
-	
+
 	<label>Name:
 		<input type="text" name="name">
+	</label>
+
+	<label>Abkürzung:
+		<input type="text" name="short">
 	</label>
 
 	<label>Stadion:

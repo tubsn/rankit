@@ -14,10 +14,22 @@ class Matches extends Model
 
 	}
 
+
 	public function get($id, $columns = null) {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT matches.*, hometeams.name as home_team, awayteams.name as away_team, locations.name as location, locations.city as city, locations.seats as seats
+			"SELECT matches.*,
+			hometeams.name as home_team, awayteams.name as away_team,
+			hometeams.short as home_team_short, awayteams.short as away_team_short,
+			locations.name as location, locations.city as city,
+			 (CASE
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        ELSE 'passed'
+		     END) as status,
+			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
+			 locations.seats as seats
 			 FROM matches
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
@@ -26,13 +38,28 @@ class Matches extends Model
 		);
 
 		$SQLstatement->execute([':ID' => $id]);
+
+
+		//dd($SQLstatement->fetch());
+
 		return ($SQLstatement->fetch());
 	}
 
 	public function latest() {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT matches.*, hometeams.name as home_team, awayteams.name as away_team, locations.name as location, locations.city as city, locations.seats as seats
+			"SELECT matches.*,
+			hometeams.name as home_team, awayteams.name as away_team,
+			hometeams.short as home_team_short, awayteams.short as away_team_short,
+			locations.name as location, locations.city as city,
+			 (CASE
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        ELSE 'passed'
+		     END) as status,
+			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
+			 locations.seats as seats
 			 FROM matches
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
@@ -50,7 +77,18 @@ class Matches extends Model
 		$limit = intval($limit);
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT matches.*, hometeams.name as home_team, awayteams.name as away_team, locations.name as location, locations.city as city, locations.seats as seats
+			"SELECT matches.*,
+			hometeams.name as home_team, awayteams.name as away_team,
+			hometeams.short as home_team_short, awayteams.short as away_team_short,
+			locations.name as location, locations.city as city,
+			 (CASE
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        ELSE 'passed'
+		     END) as status,
+			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
+			 locations.seats as seats
 			 FROM matches
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id

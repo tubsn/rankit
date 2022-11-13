@@ -14,12 +14,12 @@ class Scores extends Model
 
 	}
 
+
 	public function previous_votes($userHash) {
 
 		$SQLstatement = $this->db->connection->prepare(
 			"SELECT match_id, player_id
 			 FROM scores
-
 			 WHERE hash = :userHash"
 		);
 

@@ -6,6 +6,10 @@
 		<input type="text" value="<?=$team['name']?>" name="name">
 	</label>
 
+	<label>Abkürzung:
+		<input type="text" value="<?=$team['short']?>" name="short">
+	</label>
+
 	<label>Stadion:
 	<select name="location_id">
 		<option value="0">offen</option>

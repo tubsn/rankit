@@ -10,6 +10,10 @@
 		<input type="text" value="<?=$player['lastname']?>" name="lastname">
 	</label>
 
+	<label>Infotext (optional):
+	<textarea name="info" placeholder=""><?=$player['info']?></textarea>
+	</label>
+
 	<label>Trikotnummer:
 		<input type="number" value="<?=$player['number']?>" min="1" max="99" name="number">
 	</label>

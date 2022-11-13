@@ -10,6 +10,10 @@
 		<input type="text" name="lastname">
 	</label>
 
+	<label>Infotext (optional):
+	<textarea name="info" placeholder=""></textarea>
+	</label>
+
 	<label>Trikotnummer:
 		<input type="number" min="1" max="99" name="number">
 	</label>

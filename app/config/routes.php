@@ -4,6 +4,7 @@
 $routes->get('/', 'Home@index');
 $routes->get('/team/{id:\d+}', 'Players@list');
 $routes->get('/player/{id:\d+}', 'Players@get');
+$routes->get('/player/{id:\d+}/development', 'Players@development');
 
 
 $routes->get('/vote', 'Vote@index');

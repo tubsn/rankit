@@ -26,13 +26,21 @@ class Vote extends Controller {
 
 	public function cast($playerID) {
 
+		header('Access-Control-Allow-Origin: *');
+
 		$score = intval($_POST['score']);
 		$matchID = intval($_POST['match_id']);
 		$userHash = $_POST['hash'] ?? null;
 
 		$voteInvalid = $this->Scores->vote_already_cast($userHash,$matchID,$playerID);
+
 		if ($voteInvalid || !in_array($score, range(1,6))) {
-			throw new \Exception("Vote not accepted", 404);
+			$this->view->json([
+				'message' => 'Vote already Cast',
+				'voteHash' => null
+			]);
+			http_response_code(400);
+			return false;
 		}
 
 		if (empty($userHash) || $userHash == 'null') {
@@ -49,8 +57,10 @@ class Vote extends Controller {
 
 		$this->Scores->create($data);
 
-		header('Access-Control-Allow-Origin: *');
-		$this->view->json($userHash);
+		$this->view->json([
+			'message' => 'Vote Cast',
+			'voteHash' => $userHash
+		]);
 
 	}
 
