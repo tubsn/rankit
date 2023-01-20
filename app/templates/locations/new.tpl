@@ -1,3 +1,4 @@
+<main>
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
@@ -15,5 +16,8 @@
 	</label>
 
 	<button type="submit">Anlegen</button>
+	&ensp;
+	<a class="button light" href="/cms/locations">abbrechen und zurück</a>
 
 </form>
+</main>

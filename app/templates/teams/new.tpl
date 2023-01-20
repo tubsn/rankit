@@ -1,3 +1,4 @@
+<main>
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
@@ -6,9 +7,15 @@
 		<input type="text" name="name">
 	</label>
 
-	<label>Abkürzung:
+	<label>Kurzform:
 		<input type="text" name="short">
 	</label>
+
+	<fieldset>
+		<label>
+			<input type="checkbox" value="1" name="highlight"> Team in Auswahlboxen hervorheben?
+		</label>
+	</fieldset>
 
 	<label>Stadion:
 	<select name="location_id">
@@ -22,3 +29,4 @@
 	<button type="submit">Anlegen</button>
 
 </form>
+</main>

@@ -21,11 +21,15 @@ class Matches extends Model
 			"SELECT matches.*,
 			hometeams.name as home_team, awayteams.name as away_team,
 			hometeams.short as home_team_short, awayteams.short as away_team_short,
+			hometeams.highlight as home_team_highlight, awayteams.highlight as away_team_highlight,
 			locations.name as location, locations.city as city,
+			leagues.name as league, leagues.season as season,
 			 (CASE
+				WHEN matches.votemode = 'on' THEN 'vote'
+				WHEN matches.votemode = 'off' THEN 'passed'
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
-		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 60*24*7 THEN 'vote'
 		        ELSE 'passed'
 		     END) as status,
 			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
@@ -34,28 +38,30 @@ class Matches extends Model
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
 			 LEFT JOIN teams awayteams on matches.away_team_id = awayteams.id
+			 LEFT JOIN leagues on matches.league_id = leagues.id
 			 WHERE matches.id = :ID"
 		);
 
 		$SQLstatement->execute([':ID' => $id]);
-
-
-		//dd($SQLstatement->fetch());
-
 		return ($SQLstatement->fetch());
 	}
 
-	public function latest() {
+	public function latest($leagueID = DEFAULT_LEAGUE_ID) {
+
+		if ($leagueID) {$leagueID = intval($leagueID);}
 
 		$SQLstatement = $this->db->connection->prepare(
 			"SELECT matches.*,
 			hometeams.name as home_team, awayteams.name as away_team,
 			hometeams.short as home_team_short, awayteams.short as away_team_short,
 			locations.name as location, locations.city as city,
+			leagues.name as league, leagues.season as season,
 			 (CASE
+				WHEN matches.votemode = 'on' THEN 'vote'
+				WHEN matches.votemode = 'off' THEN 'passed'			 	
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
-		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 60*24*7 THEN 'vote'
 		        ELSE 'passed'
 		     END) as status,
 			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
@@ -64,6 +70,8 @@ class Matches extends Model
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
 			 LEFT JOIN teams awayteams on matches.away_team_id = awayteams.id
+			 LEFT JOIN leagues on matches.league_id = leagues.id
+			 WHERE matches.league_id = $leagueID		 
 			 ORDER BY `matches`.`date` DESC LIMIT 1"
 		);
 
@@ -72,19 +80,22 @@ class Matches extends Model
 	}
 
 
-	public function list($limit = 100000) {
+	public function list($leagueID = DEFAULT_LEAGUE_ID) {
 
-		$limit = intval($limit);
+		if ($leagueID) {$leagueID = intval($leagueID);}
 
 		$SQLstatement = $this->db->connection->prepare(
 			"SELECT matches.*,
 			hometeams.name as home_team, awayteams.name as away_team,
 			hometeams.short as home_team_short, awayteams.short as away_team_short,
 			locations.name as location, locations.city as city,
+			leagues.name as league, leagues.season as season,
 			 (CASE
+				WHEN matches.votemode = 'on' THEN 'vote'
+				WHEN matches.votemode = 'off' THEN 'passed'			 	
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) < 0 THEN 'pending'
 		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 0 AND 90 THEN 'running'
-		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 90*7 THEN 'vote'
+		        WHEN TIMESTAMPDIFF(MINUTE, matches.date, NOW()) BETWEEN 90 AND 60*24*7 THEN 'vote'
 		        ELSE 'passed'
 		     END) as status,
 			 TIMESTAMPDIFF(MINUTE, matches.date, NOW()) AS timediff,
@@ -93,7 +104,9 @@ class Matches extends Model
 			 LEFT JOIN locations on matches.location_id = locations.id
 			 LEFT JOIN teams hometeams on matches.home_team_id = hometeams.id
 			 LEFT JOIN teams awayteams on matches.away_team_id = awayteams.id
-			 ORDER BY `matches`.`date` DESC LIMIT $limit"
+			 LEFT JOIN leagues on matches.league_id = leagues.id
+			 WHERE matches.league_id = $leagueID
+			 ORDER BY `matches`.`date` DESC"
 		);
 
 		$SQLstatement->execute();

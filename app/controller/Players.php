@@ -2,46 +2,21 @@
 
 namespace app\controller;
 use flundr\mvc\Controller;
+use flundr\auth\Auth;
 
 class Players extends Controller {
 
 	public function __construct() {
 		$this->view('DefaultLayout');
-		$this->models('Players,Teams,Matches');
-	}
-
-	public function list($id = 1) {
-		$this->view->teams = $this->Teams->all();
-		$this->view->players = $this->Players->team($id);
-		$this->view->render('player-list');
-	}
-
-	public function match($id) {
-		//$this->view->matches = $this->Matches->all();
-		$this->view->players = $this->Players->match($id);
-		$this->view->render('player-list');
-
-	}
-
-	public function get($id) {
-		$player = $this->Players->get($id);
-		header('Access-Control-Allow-Origin: *');
-		$this->view->json($player);
-	}
-
-	public function development($id) {
-		header("Content-type: application/json; charset=utf-8");
-		header('Access-Control-Allow-Origin: *');
-		echo $this->Players->development_chartdata($id);
+		$this->models('Players,Teams');
+		if (!Auth::logged_in() && !Auth::valid_ip()) {Auth::loginpage();}
 	}
 
 	public function index() {
-		$this->view->teams = $this->Teams->all();
-		$this->view->players = $this->Players->all();
-		$this->view->title = 'Spielerübersicht';
+		$this->view->players = $this->Players->list();
+		$this->view->title = 'Spieler-Verwaltung';
 		$this->view->render('players/list');
 	}
-
 
 	public function create() {
 		$this->view->teams = $this->Teams->all();

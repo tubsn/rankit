@@ -2,44 +2,38 @@
 
 namespace app\controller;
 use flundr\mvc\Controller;
+use flundr\auth\Auth;
 
 class Matches extends Controller {
 
 	public function __construct() {
 		$this->view('DefaultLayout');
-		$this->models('Teams,Matches,Players,Locations');
+		$this->models('Teams,Matches,Players,Locations,Scores,Leagues');
+		if (!Auth::logged_in() && !Auth::valid_ip()) {Auth::loginpage();}
 	}
 
 	public function index() {
-		$this->view->matches = $this->Matches->list();
-		$this->view->title = 'Spiel Übersicht';
+		$leaguelist = $this->Leagues->list();
+		$this->view->matches = $this->Matches->list(DEFAULT_LEAGUE_ID);
+
+		$leagues = [];
+		foreach ($leaguelist as $league) {
+			if ($league['id'] == DEFAULT_LEAGUE_ID) {
+				$this->view->title = $league['name'] . ' ' . $league['season'];
+				continue;
+			}
+			$leagues[$league['name']] = $this->Matches->list($league['id']);
+		}
+
+		$this->view->leagues = $leagues;
+
+		//$this->view->title = 'Spiel-Verwaltung';
 		$this->view->render('matches/list');
 	}
 
-	public function detail($id) {
-		$match = $this->Matches->get($id);
-		$match['players'] = $this->Players->by_match($id, $match['players']);
-		header('Access-Control-Allow-Origin: *');
-		$this->view->json($match);
-	}
-
-	public function latest() {
-		$match = $this->Matches->latest();
-		$match['players'] = $this->Players->by_match($match['id'], $match['players']);
-		header('Access-Control-Allow-Origin: *');
-		$this->view->json($match);
-	}
-
-	public function list() {
-		$matches = $this->Matches->list(5);
-		header('Access-Control-Allow-Origin: *');
-		$this->view->json($matches);
-	}
-
-	public function vote($id) {
+	public function internal_vote($id) {
 
 		$match = $this->Matches->get($id);
-	
 		$this->view->players = $this->Players->by_match($id, $match['players']);
 		$this->view->match = $match;
 
@@ -47,11 +41,25 @@ class Matches extends Controller {
 
 	}
 
+	public function cast_internal_vote($matchID, $playerID) {
 
+		$score = $_POST['score'];
+
+		$data = [
+			'player_id' => $playerID,
+			'match_id' => $matchID,
+			'score' => $score,
+			'creator' => 'editor',
+		];
+
+		$this->Scores->create($data);
+		$this->view->redirect('/cms/matches/' . $matchID . '/vote');
+
+	}
 
 	public function create() {
 		$this->view->locations = $this->Locations->all();
-		$this->view->players = $this->Players->only_rankable();
+		$this->view->leagues = $this->Leagues->list();
 		$this->view->teams = $this->Teams->all();
 		$this->view->title = 'Neues Spiel anlegen';
 		$this->view->render('matches/new');
@@ -67,13 +75,16 @@ class Matches extends Controller {
 		}
 		else {$_POST['players'] = null;}
 
+		if ($_POST['home_goals'] == '') {$_POST['home_goals'] = null;}
+		if ($_POST['away_goals'] == '') {$_POST['away_goals'] = null;}
+
 		$this->Matches->create($_POST);
 		$this->view->redirect('/cms');
 	}
 
 	public function edit($id) {
 		$this->view->locations = $this->Locations->all();
-		$this->view->players = $this->Players->only_rankable();
+		$this->view->leagues = $this->Leagues->list();
 		$this->view->teams = $this->Teams->all();
 		$this->view->match = $this->Matches->get($id);
 		$this->view->title = 'Spiel bearbeiten';
@@ -89,6 +100,9 @@ class Matches extends Controller {
 			$_POST['players'] = implode(',', $_POST['players']);
 		}
 		else {$_POST['players'] = null;}
+
+		if ($_POST['home_goals'] == '') {$_POST['home_goals'] = null;}
+		if ($_POST['away_goals'] == '') {$_POST['away_goals'] = null;}
 
 		$this->Matches->update($_POST,$id);
 		$this->view->redirect('/cms');

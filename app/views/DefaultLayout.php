@@ -8,26 +8,18 @@ class DefaultLayout extends htmlView {
 	// Page Header Information is available in the Templates
 	// as a $page Array. It can be accessed via $page['title']
 
-	public $title = 'RankIt';
+	public $title = 'RankIT-CMS';
 	public $description = 'Spielerranking';
-	public $css = ['/styles/flundr/css/defaults.css'];
+	public $css = ['/styles/flundr/css/defaults.css', '/styles/css/ri-backend.css'];
 	public $fonts = 'https://fonts.googleapis.com/css?family=Fira+Sans:400,400i,600|Fira+Sans+Condensed:400,600';
-	//public $js = '/styles/js/main.js';
-	public $framework = 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js';
+	public $js = '/styles/js/rankit-backend.js';
+	public $framework = ['/styles/flundr/components/fl-dialog.js', 'https://cdn.jsdelivr.net/npm/apexcharts'];
+	//'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js'
+
 	public $meta = [
 		'author' => 'flundr',
 		'robots' => 'index, follow',
 		'favicon' => '/styles/flundr/img/flundr-logo.svg',
-	];
-
-	// You can add some "default" Variables to the Template
-	// which can be easily overwritten in the Controller by setting view->varname
-	// One usage example could be the path to a template of a Subnavigation for that Page
-	// which you can include by using the tpl() helper function "include tpl($navigation)"
-
-	public $templateVars = [
-		'layout' => 'overview',
-		'navigation' => 'nav/nav-overview',
 	];
 
 	// Place the Templateblocks to build your Page here.
@@ -36,9 +28,9 @@ class DefaultLayout extends htmlView {
 
 	public $templates = [
 		'tinyhead' => 'layout/html-doc-header',
-		'header' => null,
+		'header' => 'layout/nav',
 		'main' => null,
-		'footer' => null,
+		'footer' => 'layout/footer',
 		'tinyfoot' => 'layout/html-doc-footer',
 	];
 

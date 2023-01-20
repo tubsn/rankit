@@ -1,103 +1,195 @@
+<main>
+
+<a style="float:right" class="button light" href="/cms/matches/<?=$match['id']?>/vote">zur Spieler Bewertung</a>
+
 <h1><?=$page['title']?></h1>
 
-<form method="post" action="">
+<script defer type="text/javascript" src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-	<fieldset style="display:flex; gap:2em;">
-	<label>Datum:
-		<input type="date" value="<?=formatDate($match['date'], 'Y-m-d')?>" name="date">
-	</label>
-	<label>Uhrzeit:
-		<input type="time" value="<?=formatDate($match['date'], 'H:i')?>" name="time">
-	</label>
-	</fieldset>
+<script>
+document.addEventListener('alpine:init', () => {
+	Alpine.data('playerSelectApp', () => ({
 
-	<fieldset style="display:flex; gap:2em;">
+		players: [<?=$match['players']?>],
+		awayPlayers: [],
+		homePlayers: [],
+		home_team_id: <?=$match['home_team_id']?>,
+		away_team_id: <?=$match['away_team_id']?>,
+		selectionToggle: false,
 
-	<label>Heimteam:
-		<select name="home_team_id">
-		<option value="0">offen</option>
-		<?php if ($match['home_team_id']): ?>
-		<option selected value="<?=$match['home_team_id']?>"><?=$match['home_team']?></option>
-		<?php endif ?>
-		<?php foreach ($teams as $team): ?>
-		<?php if ($match['home_team_id'] == $team['id']) {continue;} ?>
-		<option value="<?=$team['id']?>"><?=$team['name']?></option>
-		<?php endforeach; ?>
-		</select>
-	</label>
+		selectAllPlayers() {
 
-	<label>Auswärtsteam:
-		<select name="away_team_id">
-		<option value="0">offen</option>
-		<?php if ($match['away_team_id']): ?>
-		<option selected value="<?=$match['away_team_id']?>"><?=$match['away_team']?></option>
-		<?php endif ?>
-		<?php foreach ($teams as $team): ?>
-		<?php if ($match['away_team_id'] == $team['id']) {continue;} ?>
-		<option value="<?=$team['id']?>"><?=$team['name']?></option>
-		<?php endforeach; ?>
-		</select>
-	</label>
+			if (this.players.length > 0) {this.selectionToggle = true;}
+			if (this.selectionToggle) {
+				this.players = []; 
+				this.selectionToggle = !this.selectionToggle;
+				return;
+			}
 
-	<label>Stadion:
-	<select name="location_id">
-		<option value="0">offen</option>
-		<?php if ($match['location_id']): ?>
-		<option selected value="<?=$match['location_id']?>"><?=$match['location']?></option>
-		<?php endif ?>
-		<?php foreach ($locations as $location): ?>
-		<?php if ($match['location_id'] == $location['id']) {continue;} ?>
-		<option value="<?=$location['id']?>"><?=$location['name']?> | <?=$location['city']?></option>
-		<?php endforeach ?>
-	</select>
-	</label>
+			this.players = this.allPlayerIDs();
+			this.selectionToggle = !this.selectionToggle;
+			
+		},
 
-	</fieldset>
+		allPlayerIDs() {
+			let extractColumn = (arr, column) => arr.map(x=>x[column]);
+			let awayPlayerIDs = extractColumn(this.awayPlayers,'id');
+			let homePlayerIDs = extractColumn(this.homePlayers,'id');
+			return homePlayerIDs.concat(awayPlayerIDs);
+		},
+
+		playerCount() {return this.players.length;},
+	}))
+})
+
+</script>
+
+<form method="post" action="" x-data="playerSelectApp()" 
+x-init="awayPlayers = await (await fetch('/team/'+away_team_id+'/players')).json();
+ 		homePlayers = await (await fetch('/team/'+home_team_id+'/players')).json()">
+
+<fieldset style="display:flex; gap:2em;">
+<label>Datum:
+	<input type="date" value="<?=formatDate($match['date'], 'Y-m-d')?>" name="date">
+</label>
+<label>Uhrzeit:
+	<input type="time" value="<?=formatDate($match['date'], 'H:i')?>" name="time">
+</label>
+
+<label>Stadion:
+<select name="location_id">
+	<option value="0">offen</option>
+	<?php if ($match['location_id']): ?>
+	<option selected value="<?=$match['location_id']?>"><?=$match['location']?> | <?=$match['city']?></option>
+	<?php endif ?>
+	<?php foreach ($locations as $location): ?>
+	<?php if ($match['location_id'] == $location['id']) {continue;} ?>
+	<option value="<?=$location['id']?>"><?=$location['name']?> | <?=$location['city']?></option>
+	<?php endforeach ?>
+</select>
+</label>
+
+<label>Liga / Saison:
+<select name="league_id">
+	<?php if ($match['league_id']): ?>
+	<option selected value="<?=$match['league_id']?>"><?=$match['league']?> <?=$match['season']?></option>
+	<?php endif ?>
+	<?php foreach ($leagues as $league): ?>
+	<?php if ($match['league_id'] == $league['id']) {continue;} ?>
+	<option value="<?=$league['id']?>"><?=$league['name']?> <?=$league['season']?></option>
+	<?php endforeach ?>
+</select>
+</label>
+
+
+<label>Bewertungssteuerung:
+<select name="votemode">
+	<option <?=($match['votemode'] == 'auto') ? 'selected ' : ''?>value="auto">automatik (7Tage)</option>
+	<option <?=($match['votemode'] == 'on') ? 'selected ' : ''?>value="on">Voting offen</option>
+	<option <?=($match['votemode'] == 'off') ? 'selected ' : ''?>value="off">Voting gesperrt</option>
+</select>
+</label>
 
 
 
 
+</fieldset>
 
-	<?php
-	if ($match['players'] ) {
-		$match['players'] = explode(',', $match['players']);
-	} else {$match['players'] = [];}
-	?>
+<fieldset style="display:flex; gap:2em;">
 
-	<fieldset class="box">
-	<label>Teilnehmende Spieler (<span class="js-counter">x</span> von 11):</label><br/>
+<label>Tore Heimteam:
+	<input type="number" value="<?=$match['home_goals']?>" name="home_goals">
+</label>
 
-	<ul class="player-list">
-	<?php foreach ($players as $player): ?>
-	<li>
-	<label class="js-player">
-		<?php if (in_array($player['id'], $match['players'])): ?>
-		<input type="checkbox" name="players[]" checked value="<?=$player['id']?>">
-		<?php else: ?>
-		<input type="checkbox" name="players[]" value="<?=$player['id']?>">
-		<?php endif; ?>
-		<?=$player['number']?>. <?=$player['lastname']?>, <?=$player['firstname']?>  (<?=$player['position']?>)
-	</label>
-	</li>
+<label>Heimteam:
+	<select name="home_team_id" x-model="home_team_id" @change="homePlayers = await (await fetch('/team/'+home_team_id+'/players')).json(); players = []">
+	<option value="0">offen</option>
+	<?php if ($match['home_team_id']): ?>
+	<option selected value="<?=$match['home_team_id']?>" <?php if ($match['home_team_highlight'] == 1): ?> class="highlight"<?php endif ?>><?=$match['home_team']?></option>
+	<?php endif ?>
+	<?php foreach ($teams as $team): ?>
+	<?php if ($match['home_team_id'] == $team['id']) {continue;} ?>
+	<option value="<?=$team['id']?>" <?php if ($team['highlight'] == 1): ?> class="highlight"<?php endif ?>><?=$team['name']?></option>
 	<?php endforeach; ?>
-	</ul>
+	</select>
+</label>
 
-	</fieldset>
+<label>Auswärtsteam:
+	<select name="away_team_id" x-model="away_team_id" @change="awayPlayers = await (await fetch('/team/'+away_team_id+'/players')).json(); players = []">
+	<option value="0">offen</option>
+	<?php if ($match['away_team_id']): ?>
+	<option selected value="<?=$match['away_team_id']?>" <?php if ($match['away_team_highlight'] == 1): ?> class="highlight"<?php endif ?>><?=$match['away_team']?></option>
+	<?php endif ?>
+	<?php foreach ($teams as $team): ?>
+	<?php if ($match['away_team_id'] == $team['id']) {continue;} ?>
+	<option value="<?=$team['id']?>" <?php if ($team['highlight'] == 1): ?> class="highlight"<?php endif ?>><?=$team['name']?></option>
+	<?php endforeach; ?>
+	</select>
+</label>
 
-<style>
-.player-list {list-style-type: none; display:flex; flex-wrap: wrap; gap:1em; background-color: #f0f0f0; padding:1em;}
-.player-list li {margin:0; padding:0; }
-.player-list li label {cursor:pointer; padding:1em; display:inline-block; background-color:white;}
-</style>
 
-	<fieldset>
-	<label>Notizen zum Spiel (optional):
+
+<label>Tore Auswärtsteam:
+	<input type="number" value="<?=$match['away_goals']?>" name="away_goals">
+</label>
+
+</fieldset>
+
+
+<fieldset>
+<label>Notizen zum Spiel (optional):
+	<div class="note-box">
 	<textarea name="info" placeholder="z.B. Spieler XY außer Wertung weil eingewechselt..."><?=$match['info']?></textarea>
-	</label>
-	</fieldset>
+	</div>
+</label>
+</fieldset>
 
-	<button type="submit">Speichern</button>
-	&ensp;
-	<a class="button light" href="/cms/matches">abbrechen und zurück</a>	
+
+<h3 x-text="`Ausgewählte Spieler (${playerCount()}/18):`">Ausgewählte Spieler:</h3>
+
+<fieldset class="player-box">
+<button class="select-all-button light" type="button" @click="selectAllPlayers()">alle aktivieren / deaktivieren</button>
+	<ul class="player-list">
+
+		<template x-for="player in homePlayers">
+			<li class="home-players">
+				<label class="js-player"> 
+					<input class="js-checkbox" type="checkbox" name="players[]" x-bind:value="player.id" x-model="players">
+					<div class="player-container">
+						<img class="player-thumbnail" :src="player.thumbnail">
+						<div class="player-info">
+							<div class="player-number" x-text="`#${player.number} ${player.position}`"></div>
+							<div class="player-name" x-text="`${player.firstname} ${player.lastname}`"></div>
+							<div class="player-position" x-text="`${player.team_short}`"></div>
+						</div>
+					</div>
+				</label>
+			</li>
+		</template>
+
+		<template x-for="player in awayPlayers">
+			<li>
+				<label class="js-player"> 
+					<input class="js-checkbox" type="checkbox" name="players[]" x-bind:value="player.id" x-model="players">
+					<div class="player-container">
+						<img class="player-thumbnail" :src="player.thumbnail">
+						<div class="player-info">
+							<div class="player-number" x-text="`#${player.number} ${player.position}`"></div>
+							<div class="player-name" x-text="`${player.firstname} ${player.lastname}`"></div>
+							<div class="player-position" x-text="`${player.team_short}`"></div>
+						</div>
+					</div>
+				</label>
+			</li>
+	    </template>
+
+	</ul>
+</fieldset>
+
+
+<button type="submit">Spiel speichern</button>
+&ensp;
+<a class="button light" href="/cms">abbrechen und zurück</a>	
 
 </form>
+</main>

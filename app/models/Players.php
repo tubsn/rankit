@@ -15,18 +15,6 @@ class Players extends Model
 
 	}
 
-	public function only_rankable() {
-
-		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.rankable as rankable FROM players
-			 LEFT JOIN teams on teams.id = players.team_id
-			WHERE rankable = 1
-			ORDER BY players.number"
-		);
-
-		$SQLstatement->execute();
-		return ($SQLstatement->fetchAll());
-	}
 
 	public function get($id, $columns = null) {
 
@@ -37,28 +25,28 @@ class Players extends Model
 					SELECT round(avg(score),1) FROM scores
 					WHERE scores.player_id = :ID
 					AND creator = 'fan'
-					AND scores.date > NOW() - INTERVAL 1 MONTH
+					AND scores.date > NOW() - INTERVAL 12 MONTH
 				) as score,
 
 				(
 					SELECT count(score) FROM scores
 					WHERE scores.player_id = :ID
 					AND creator = 'fan'
-					AND scores.date > NOW() - INTERVAL 1 MONTH
+					AND scores.date > NOW() - INTERVAL 12 MONTH
 				) as votes,
 
 				(
 					SELECT round(avg(score),1) FROM scores
 					WHERE scores.player_id = :ID
 					AND creator = 'editor'
-					AND scores.date > NOW() - INTERVAL 1 MONTH
+					AND scores.date > NOW() - INTERVAL 12 MONTH
 				) as score_internal,
 
 				(
 					SELECT count(score) FROM scores
 					WHERE scores.player_id = :ID
 					AND creator = 'editor'
-					AND scores.date > NOW() - INTERVAL 1 MONTH
+					AND scores.date > NOW() - INTERVAL 12 MONTH
 				) as votes_internal
 
 
@@ -74,27 +62,45 @@ class Players extends Model
 	}
 
 
-	public function development_chartdata($playerID) {
+	public function development_chartdata($playerID, $leagueID = DEFAULT_LEAGUE_ID) {
 
-		$data = [];
+		$fanData = $this->development($playerID, 'fan', $leagueID);
+		$editorData = $this->development($playerID, 'editor', $leagueID);
 
-		$fanData = $this->development($playerID, 'fan');
-		$data['fan']['matches'] = $fanData;
-		$data['fan']['chart']['dimension'] = array_column($fanData, 'enemy');
-		$data['fan']['chart']['metric'] = array_column($fanData, 'scorediff');
+		$chart = [];
+		foreach ($fanData as $key => $set) {
+			$chart['matchID'][$key] = $key;
+			$chart['enemy'][$key] = $set['enemy'];
+			$chart['gametype'][$key] = $set['gametype'];
+			$chart['date'][$key] = $set['date'];
+			$chart['fanscore'][$key] = $set['scorediff'];
+			$chart['editorscore'][$key] = null;
+		}
 
-		$editorData = $this->development($playerID, 'editor');
-		$data['editor']['matches'] = $editorData;
-		$data['editor']['chart']['dimension'] = array_column($editorData, 'enemy');
-		$data['editor']['chart']['metric'] = array_column($editorData, 'scorediff');
+		foreach ($editorData as $key => $set) {
+			$chart['matchID'][$key] = $key;
+			$chart['enemy'][$key] = $set['enemy'];
+			$chart['gametype'][$key] = $set['gametype'];
+			$chart['date'][$key] = $set['date'];
+			$chart['editorscore'][$key] = $set['scorediff'];
+			if (empty($chart['fanscore'][$key])) {$chart['fanscore'][$key] = null;}
+		}
 
-		return json_encode($data, JSON_NUMERIC_CHECK);
+		$chart['matchID'] = array_values($chart['matchID']);
+		$chart['gametype'] = array_values($chart['gametype']);
+		$chart['date'] = array_values($chart['date']);
+		$chart['enemy'] = array_values($chart['enemy']);
+		$chart['editorscore'] = array_values($chart['editorscore']);
+		$chart['fanscore'] = array_values($chart['fanscore']);
+
+		return json_encode($chart, JSON_NUMERIC_CHECK);
 
 	}
 
-	public function development($playerID, $creator = 'fan') {
+	public function development($playerID, $creator = 'fan', $leagueID = DEFAULT_LEAGUE_ID) {
 
 		$playerID = intval($playerID);
+		$leagueID = intval($leagueID);
 
 		$allowedCreators = ['fan','editor'];
 		if (!in_array($creator, $allowedCreators)) {throw new \Exception("Creator not Allowed", 404);}
@@ -109,7 +115,7 @@ class Players extends Model
 					(round(avg(scores.score),1)-3.5)*-1,
 					((round(avg(scores.score),1)-3.5)*-1)
 				) as scorediff,
-				if (teams.short, teams.short, teams.name) as enemy
+				if (teams.short IS NULL or teams.short = '', teams.name, teams.short) as enemy
 
 			 FROM scores
 
@@ -121,8 +127,10 @@ class Players extends Model
 
 		 	 WHERE scores.player_id = :playerID
 			 AND scores.creator = :creator
+			 AND matches.league_id = $leagueID
+
 			 GROUP BY scores.match_id
-			 ORDER BY date DESC"
+			 ORDER BY date ASC"
 		);
 
 		$SQLstatement->execute([':playerID' => $playerID, ':creator' => $creator]);
@@ -132,6 +140,9 @@ class Players extends Model
 
 
 	public function by_match($matchID, $playerIDs) {
+
+		// Query won't work with null IDs
+		if (empty($playerIDs)) {$playerIDs = 0;}
 
 		$SQLstatement = $this->db->connection->prepare(
 			"SELECT players.*, teams.name as team, TIMESTAMPDIFF(YEAR, players.birthday, CURDATE()) AS age,
@@ -167,8 +178,23 @@ class Players extends Model
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE players.id IN ($playerIDs)
-			 ORDER BY players.number
+			 ORDER BY players.lastname
 			 "
+		);
+
+		$SQLstatement->execute();
+		$players = $SQLstatement->fetchAll();
+		return $this->group_sort($players);
+
+	}
+
+
+	public function list() {
+
+		$SQLstatement = $this->db->connection->prepare(
+			"SELECT players.*, teams.name as team
+			 FROM players
+			 LEFT JOIN teams on teams.id = players.team_id"
 		);
 
 		$SQLstatement->execute();
@@ -176,14 +202,10 @@ class Players extends Model
 
 	}
 
-
-
-
-
 	public function team($teamID) {
 
 		$SQLstatement = $this->db->connection->prepare(
-			"SELECT players.*, teams.name as team,
+			"SELECT players.*, teams.name as team, teams.short as team_short,
 
 				round((
 					SELECT avg(score) FROM scores
@@ -199,15 +221,42 @@ class Players extends Model
 			 FROM players
 			 LEFT JOIN teams on teams.id = players.team_id
 			 WHERE teams.id = $teamID
+			 ORDER BY team, players.lastname
 			 "
 		);
 
 		$SQLstatement->execute();
-		return ($SQLstatement->fetchAll());
+		$players = $SQLstatement->fetchAll();
+		return $this->group_sort($players);
 
 	}
 
 
+	public function group_sort($players) {
 
+		$positions = ['tor', 'abwehr', 'mittelfeld', 'angriff'];
+		$sorted = [];
+
+		foreach ($positions as $position) {
+
+			$set = array_filter($players, function($player) use ($position) {
+				if (strTolower($player['position']) == $position) {
+					return $player;
+				}
+			});
+
+			$sorted = array_merge($sorted, $set);
+
+		}
+
+		$rest = array_filter($players, function($player) use ($positions) {
+			if (!in_array(strTolower($player['position']), $positions) ) {
+				return $player;
+			}
+		});
+
+		return array_merge($sorted, $rest);
+
+	}
 
 }

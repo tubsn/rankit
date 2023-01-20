@@ -2,17 +2,19 @@
 
 namespace app\controller;
 use flundr\mvc\Controller;
+use flundr\auth\Auth;
 
 class Teams extends Controller {
 
 	public function __construct() {
 		$this->view('DefaultLayout');
 		$this->models('Teams,Locations');
+		if (!Auth::logged_in() && !Auth::valid_ip()) {Auth::loginpage();}		
 	}
 
 	public function index() {
 		$this->view->teams = $this->Teams->all();
-		$this->view->title = 'Team Übersicht';
+		$this->view->title = 'Team-Verwaltung';
 		$this->view->render('teams/list');
 	}
 
@@ -39,7 +41,6 @@ class Teams extends Controller {
 	}
 
 	public function update($id) {
-		if (empty($_POST['rankable'])) {$_POST['rankable'] = null;}
 		$this->Teams->update($_POST,$id);
 		$this->view->redirect('/cms/teams');
 	}

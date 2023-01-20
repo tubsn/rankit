@@ -1,12 +1,13 @@
+<main>
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
 
-	<label>Name:
+	<label>Vorname:
 		<input type="text" value="<?=$player['firstname']?>" name="firstname">
 	</label>
 
-	<label>Name:
+	<label>Nachname:
 		<input type="text" value="<?=$player['lastname']?>" name="lastname">
 	</label>
 
@@ -46,3 +47,4 @@
 	<button type="submit">Speichern</button>
 
 </form>
+</main>

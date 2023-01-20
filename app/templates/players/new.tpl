@@ -1,3 +1,4 @@
+<main>
 <h1><?=$page['title']?></h1>
 
 <form method="post" action="">
@@ -42,3 +43,5 @@
 	<button type="submit">Anlegen</button>
 
 </form>
+
+</main>

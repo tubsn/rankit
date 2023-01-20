@@ -2,17 +2,19 @@
 
 namespace app\controller;
 use flundr\mvc\Controller;
+use flundr\auth\Auth;
 
 class Locations extends Controller {
 
 	public function __construct() {
 		$this->view('DefaultLayout');
 		$this->models('Locations');
+		if (!Auth::logged_in() && !Auth::valid_ip()) {Auth::loginpage();}
 	}
 
 	public function index() {
 		$this->view->locations = $this->Locations->all();
-		$this->view->title = 'Stadion Übersicht';
+		$this->view->title = 'Stadien-Veraltung';
 		$this->view->render('locations/list');
 	}
 
